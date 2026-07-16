@@ -6,71 +6,87 @@
  */
 export type Json = string | number | boolean | null | { [key: string]: Json } | Json[];
 
-export type UserRole = 'admin' | 'manager' | 'staff' | 'viewer';
-export type StockMovementType =
-  'purchase_receipt' | 'sale_shipment' | 'adjustment' | 'transfer_in' | 'transfer_out' | 'return';
-export type OrderStatus = 'draft' | 'pending' | 'approved' | 'fulfilled' | 'cancelled';
+export type ProfileRole = 'super_admin' | 'admin' | 'manager' | 'staff';
+export type PurchaseOrderStatus = 'draft' | 'pending' | 'received' | 'cancelled';
+export type SalesOrderStatus = 'draft' | 'confirmed' | 'shipped' | 'delivered' | 'cancelled';
+export type StockMovementType = 'purchase' | 'sale' | 'adjustment' | 'return';
+export type StockMovementReferenceType = 'purchase_order' | 'sales_order' | 'adjustment';
+export type NotificationType = 'info' | 'warning' | 'success' | 'error';
 
 export interface Database {
   public: {
     Tables: {
-      organizations: {
-        Row: { id: string; name: string; created_at: string; updated_at: string };
-        Insert: { id?: string; name: string; created_at?: string; updated_at?: string };
-        Update: { id?: string; name?: string; created_at?: string; updated_at?: string };
-        Relationships: [];
-      };
       profiles: {
         Row: {
           id: string;
-          organization_id: string;
           email: string;
-          full_name: string;
-          role: UserRole;
-          is_active: boolean;
-          avatar_url: string | null;
+          full_name: string | null;
+          role: ProfileRole;
           created_at: string;
           updated_at: string;
         };
         Insert: {
           id: string;
-          organization_id: string;
           email: string;
-          full_name: string;
-          role?: UserRole;
-          is_active?: boolean;
-          avatar_url?: string | null;
+          full_name?: string | null;
+          role?: ProfileRole;
           created_at?: string;
           updated_at?: string;
         };
         Update: Partial<Database['public']['Tables']['profiles']['Insert']>;
         Relationships: [];
       };
-      categories: {
+      products: {
         Row: {
           id: string;
-          organization_id: string;
+          sku: string;
           name: string;
-          parent_id: string | null;
+          description: string | null;
+          category: string | null;
+          unit_price: number;
+          cost_price: number | null;
+          reorder_level: number;
           created_at: string;
           updated_at: string;
         };
         Insert: {
           id?: string;
-          organization_id: string;
+          sku: string;
           name: string;
-          parent_id?: string | null;
+          description?: string | null;
+          category?: string | null;
+          unit_price: number;
+          cost_price?: number | null;
+          reorder_level?: number;
           created_at?: string;
           updated_at?: string;
         };
-        Update: Partial<Database['public']['Tables']['categories']['Insert']>;
+        Update: Partial<Database['public']['Tables']['products']['Insert']>;
+        Relationships: [];
+      };
+      inventory: {
+        Row: {
+          id: string;
+          product_id: string;
+          quantity: number;
+          warehouse_location: string | null;
+          last_updated: string;
+        };
+        Insert: {
+          id?: string;
+          product_id: string;
+          quantity?: number;
+          warehouse_location?: string | null;
+          last_updated?: string;
+        };
+        Update: Partial<Database['public']['Tables']['inventory']['Insert']>;
         Relationships: [];
       };
       suppliers: {
         Row: {
           id: string;
-          organization_id: string;
           name: string;
+          contact_person: string | null;
           email: string | null;
           phone: string | null;
           address: string | null;
@@ -79,8 +95,8 @@ export interface Database {
         };
         Insert: {
           id?: string;
-          organization_id: string;
           name: string;
+          contact_person?: string | null;
           email?: string | null;
           phone?: string | null;
           address?: string | null;
@@ -90,132 +106,29 @@ export interface Database {
         Update: Partial<Database['public']['Tables']['suppliers']['Insert']>;
         Relationships: [];
       };
-      warehouses: {
-        Row: {
-          id: string;
-          organization_id: string;
-          name: string;
-          address: string | null;
-          is_default: boolean;
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: {
-          id?: string;
-          organization_id: string;
-          name: string;
-          address?: string | null;
-          is_default?: boolean;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Update: Partial<Database['public']['Tables']['warehouses']['Insert']>;
-        Relationships: [];
-      };
-      products: {
-        Row: {
-          id: string;
-          organization_id: string;
-          sku: string;
-          name: string;
-          description: string | null;
-          category_id: string | null;
-          supplier_id: string | null;
-          unit_price: number;
-          cost_price: number;
-          reorder_level: number;
-          reorder_quantity: number;
-          is_active: boolean;
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: {
-          id?: string;
-          organization_id: string;
-          sku: string;
-          name: string;
-          description?: string | null;
-          category_id?: string | null;
-          supplier_id?: string | null;
-          unit_price?: number;
-          cost_price?: number;
-          reorder_level?: number;
-          reorder_quantity?: number;
-          is_active?: boolean;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Update: Partial<Database['public']['Tables']['products']['Insert']>;
-        Relationships: [];
-      };
-      stock_levels: {
-        Row: {
-          product_id: string;
-          warehouse_id: string;
-          quantity_on_hand: number;
-          quantity_reserved: number;
-          quantity_available: number;
-          updated_at: string;
-        };
-        Insert: {
-          product_id: string;
-          warehouse_id: string;
-          quantity_on_hand?: number;
-          quantity_reserved?: number;
-          updated_at?: string;
-        };
-        Update: Partial<Database['public']['Tables']['stock_levels']['Insert']>;
-        Relationships: [];
-      };
-      stock_movements: {
-        Row: {
-          id: string;
-          organization_id: string;
-          product_id: string;
-          warehouse_id: string;
-          type: StockMovementType;
-          quantity: number;
-          reference_id: string | null;
-          note: string | null;
-          created_by: string | null;
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: {
-          id?: string;
-          organization_id: string;
-          product_id: string;
-          warehouse_id: string;
-          type: StockMovementType;
-          quantity: number;
-          reference_id?: string | null;
-          note?: string | null;
-          created_by?: string | null;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Update: Partial<Database['public']['Tables']['stock_movements']['Insert']>;
-        Relationships: [];
-      };
       purchase_orders: {
         Row: {
           id: string;
-          organization_id: string;
-          supplier_id: string;
-          warehouse_id: string;
-          status: OrderStatus;
-          expected_at: string | null;
+          po_number: string;
+          supplier_id: string | null;
+          order_date: string;
+          expected_delivery: string | null;
+          status: PurchaseOrderStatus;
+          total_amount: number | null;
+          notes: string | null;
           created_by: string | null;
           created_at: string;
           updated_at: string;
         };
         Insert: {
           id?: string;
-          organization_id: string;
-          supplier_id: string;
-          warehouse_id: string;
-          status?: OrderStatus;
-          expected_at?: string | null;
+          po_number: string;
+          supplier_id?: string | null;
+          order_date?: string;
+          expected_delivery?: string | null;
+          status?: PurchaseOrderStatus;
+          total_amount?: number | null;
+          notes?: string | null;
           created_by?: string | null;
           created_at?: string;
           updated_at?: string;
@@ -223,63 +136,48 @@ export interface Database {
         Update: Partial<Database['public']['Tables']['purchase_orders']['Insert']>;
         Relationships: [];
       };
-      purchase_order_lines: {
+      purchase_order_items: {
         Row: {
           id: string;
-          purchase_order_id: string;
+          po_id: string;
           product_id: string;
           quantity: number;
-          unit_cost: number;
+          unit_price: number;
+          total_price: number;
         };
         Insert: {
           id?: string;
-          purchase_order_id: string;
+          po_id: string;
           product_id: string;
           quantity: number;
-          unit_cost?: number;
+          unit_price: number;
         };
-        Update: Partial<Database['public']['Tables']['purchase_order_lines']['Insert']>;
-        Relationships: [];
-      };
-      customers: {
-        Row: {
-          id: string;
-          organization_id: string;
-          name: string;
-          email: string | null;
-          phone: string | null;
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: {
-          id?: string;
-          organization_id: string;
-          name: string;
-          email?: string | null;
-          phone?: string | null;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Update: Partial<Database['public']['Tables']['customers']['Insert']>;
+        Update: Partial<Database['public']['Tables']['purchase_order_items']['Insert']>;
         Relationships: [];
       };
       sales_orders: {
         Row: {
           id: string;
-          organization_id: string;
-          customer_id: string;
-          warehouse_id: string;
-          status: OrderStatus;
+          order_number: string;
+          customer_name: string;
+          customer_email: string | null;
+          order_date: string;
+          status: SalesOrderStatus;
+          total_amount: number | null;
+          notes: string | null;
           created_by: string | null;
           created_at: string;
           updated_at: string;
         };
         Insert: {
           id?: string;
-          organization_id: string;
-          customer_id: string;
-          warehouse_id: string;
-          status?: OrderStatus;
+          order_number: string;
+          customer_name: string;
+          customer_email?: string | null;
+          order_date?: string;
+          status?: SalesOrderStatus;
+          total_amount?: number | null;
+          notes?: string | null;
           created_by?: string | null;
           created_at?: string;
           updated_at?: string;
@@ -287,34 +185,93 @@ export interface Database {
         Update: Partial<Database['public']['Tables']['sales_orders']['Insert']>;
         Relationships: [];
       };
-      sales_order_lines: {
+      sales_order_items: {
         Row: {
           id: string;
-          sales_order_id: string;
+          so_id: string;
+          product_id: string;
+          quantity: number;
+          unit_price: number;
+          total_price: number;
+        };
+        Insert: {
+          id?: string;
+          so_id: string;
           product_id: string;
           quantity: number;
           unit_price: number;
         };
+        Update: Partial<Database['public']['Tables']['sales_order_items']['Insert']>;
+        Relationships: [];
+      };
+      stock_movements: {
+        Row: {
+          id: string;
+          product_id: string;
+          quantity_change: number;
+          previous_quantity: number;
+          new_quantity: number;
+          movement_type: StockMovementType;
+          reference_id: string | null;
+          reference_type: StockMovementReferenceType | null;
+          notes: string | null;
+          created_by: string | null;
+          created_at: string;
+        };
         Insert: {
           id?: string;
-          sales_order_id: string;
           product_id: string;
-          quantity: number;
-          unit_price?: number;
+          quantity_change: number;
+          /** Set by the apply_stock_movement trigger; safe to omit. */
+          previous_quantity?: number;
+          /** Set by the apply_stock_movement trigger; safe to omit. */
+          new_quantity?: number;
+          movement_type: StockMovementType;
+          reference_id?: string | null;
+          reference_type?: StockMovementReferenceType | null;
+          notes?: string | null;
+          created_by?: string | null;
+          created_at?: string;
         };
-        Update: Partial<Database['public']['Tables']['sales_order_lines']['Insert']>;
+        Update: Partial<Database['public']['Tables']['stock_movements']['Insert']>;
+        Relationships: [];
+      };
+      notifications: {
+        Row: {
+          id: string;
+          user_id: string | null;
+          title: string;
+          message: string;
+          type: NotificationType;
+          read_at: string | null;
+          metadata: Json | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id?: string | null;
+          title: string;
+          message: string;
+          type?: NotificationType;
+          read_at?: string | null;
+          metadata?: Json | null;
+          created_at?: string;
+        };
+        Update: Partial<Database['public']['Tables']['notifications']['Insert']>;
         Relationships: [];
       };
     };
     Views: Record<string, never>;
     Functions: {
-      current_organization_id: { Args: Record<string, never>; Returns: string };
-      current_role: { Args: Record<string, never>; Returns: UserRole };
+      current_role: { Args: Record<string, never>; Returns: ProfileRole };
     };
     Enums: {
-      user_role: UserRole;
+      profile_role: ProfileRole;
+      purchase_order_status: PurchaseOrderStatus;
+      sales_order_status: SalesOrderStatus;
       stock_movement_type: StockMovementType;
-      order_status: OrderStatus;
+      stock_movement_reference_type: StockMovementReferenceType;
+      notification_type: NotificationType;
     };
   };
 }

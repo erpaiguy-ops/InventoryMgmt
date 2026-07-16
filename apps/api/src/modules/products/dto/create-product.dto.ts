@@ -1,4 +1,4 @@
-import { IsBoolean, IsInt, IsNumber, IsOptional, IsString, IsUUID, Min } from 'class-validator';
+import { IsNumber, IsOptional, IsInt, IsString, Min } from 'class-validator';
 
 export class CreateProductDto {
   @IsString()
@@ -12,32 +12,20 @@ export class CreateProductDto {
   description?: string;
 
   @IsOptional()
-  @IsUUID()
-  categoryId?: string;
-
-  @IsOptional()
-  @IsUUID()
-  supplierId?: string;
+  @IsString()
+  category?: string;
 
   @IsNumber()
   @Min(0)
   unitPrice!: number;
 
+  @IsOptional()
   @IsNumber()
   @Min(0)
-  costPrice!: number;
+  costPrice?: number;
 
   @IsOptional()
   @IsInt()
   @Min(0)
   reorderLevel?: number;
-
-  @IsOptional()
-  @IsInt()
-  @Min(0)
-  reorderQuantity?: number;
-
-  @IsOptional()
-  @IsBoolean()
-  isActive?: boolean;
 }

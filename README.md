@@ -78,8 +78,14 @@ pnpm db:migrate
 pnpm db:seed   # optional, development data
 ```
 
-Row Level Security is enabled on every tenant-scoped table, isolating data by
-`organization_id` via `public.current_organization_id()`.
+This is a single-workspace ERP (no multi-tenancy): every authenticated user
+shares the same products, inventory, orders, etc. Row Level Security is
+enabled on every table — reads are open to any authenticated user, writes
+follow the same rule, and deletes require `admin`/`super_admin` (see
+`profiles.role`). `stock_movements` is the only supported write path for
+stock changes; inserting a row there auto-computes `inventory.quantity` via
+a trigger. New signups get a `profiles` row automatically via a trigger on
+`auth.users`.
 
 ## Docker
 

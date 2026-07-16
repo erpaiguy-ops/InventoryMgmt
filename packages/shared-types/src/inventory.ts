@@ -1,70 +1,76 @@
-import type { Timestamps } from './common';
-
-export interface Category extends Timestamps {
+export interface Product {
   id: string;
-  organizationId: string;
-  name: string;
-  parentId: string | null;
-}
-
-export interface Supplier extends Timestamps {
-  id: string;
-  organizationId: string;
-  name: string;
-  email?: string | null;
-  phone?: string | null;
-  address?: string | null;
-}
-
-export interface Warehouse extends Timestamps {
-  id: string;
-  organizationId: string;
-  name: string;
-  address?: string | null;
-  isDefault: boolean;
-}
-
-export interface Product extends Timestamps {
-  id: string;
-  organizationId: string;
   sku: string;
   name: string;
-  description?: string | null;
-  categoryId: string | null;
-  supplierId: string | null;
+  description: string | null;
+  category: string | null;
   unitPrice: number;
-  costPrice: number;
+  costPrice: number | null;
   reorderLevel: number;
-  reorderQuantity: number;
-  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
-export interface StockLevel {
+export interface Inventory {
+  id: string;
   productId: string;
-  warehouseId: string;
-  quantityOnHand: number;
-  quantityReserved: number;
-  quantityAvailable: number;
+  quantity: number;
+  warehouseLocation: string | null;
+  lastUpdated: string;
+}
+
+export interface Supplier {
+  id: string;
+  name: string;
+  contactPerson: string | null;
+  email: string | null;
+  phone: string | null;
+  address: string | null;
+  createdAt: string;
   updatedAt: string;
 }
 
 export enum StockMovementType {
-  PURCHASE_RECEIPT = 'purchase_receipt',
-  SALE_SHIPMENT = 'sale_shipment',
+  PURCHASE = 'purchase',
+  SALE = 'sale',
   ADJUSTMENT = 'adjustment',
-  TRANSFER_IN = 'transfer_in',
-  TRANSFER_OUT = 'transfer_out',
   RETURN = 'return',
 }
 
-export interface StockMovement extends Timestamps {
+export enum StockMovementReferenceType {
+  PURCHASE_ORDER = 'purchase_order',
+  SALES_ORDER = 'sales_order',
+  ADJUSTMENT = 'adjustment',
+}
+
+export interface StockMovement {
   id: string;
-  organizationId: string;
   productId: string;
-  warehouseId: string;
-  type: StockMovementType;
-  quantity: number;
-  referenceId?: string | null;
-  note?: string | null;
-  createdBy: string;
+  quantityChange: number;
+  previousQuantity: number;
+  newQuantity: number;
+  movementType: StockMovementType;
+  referenceId: string | null;
+  referenceType: StockMovementReferenceType | null;
+  notes: string | null;
+  createdBy: string | null;
+  createdAt: string;
+}
+
+export enum NotificationType {
+  INFO = 'info',
+  WARNING = 'warning',
+  SUCCESS = 'success',
+  ERROR = 'error',
+}
+
+export interface Notification {
+  id: string;
+  userId: string | null;
+  title: string;
+  message: string;
+  type: NotificationType;
+  readAt: string | null;
+  metadata: Record<string, unknown> | null;
+  createdAt: string;
 }

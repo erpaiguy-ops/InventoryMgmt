@@ -32,36 +32,17 @@ export class AuthService {
   async register(dto: RegisterDto) {
     const admin = this.supabaseService.getAdminClient();
 
+    // The on_auth_user_created trigger creates the matching public.profiles
+    // row (using user_metadata.full_name) as soon as this insert commits.
     const { data: authData, error: authError } = await admin.auth.admin.createUser({
       email: dto.email,
       password: dto.password,
       email_confirm: true,
+      user_metadata: { full_name: dto.fullName },
     });
 
     if (authError || !authData.user) {
       throw new UnauthorizedException(authError?.message ?? 'Registration failed');
-    }
-
-    const { data: org, error: orgError } = await admin
-      .from('organizations')
-      .insert({ name: dto.organizationName })
-      .select()
-      .single();
-
-    if (orgError || !org) {
-      throw new UnauthorizedException(orgError?.message ?? 'Failed to create organization');
-    }
-
-    const { error: profileError } = await admin.from('profiles').insert({
-      id: authData.user.id,
-      organization_id: org.id,
-      email: dto.email,
-      full_name: dto.fullName,
-      role: 'admin',
-    });
-
-    if (profileError) {
-      throw new UnauthorizedException(profileError.message);
     }
 
     return this.login({ email: dto.email, password: dto.password });

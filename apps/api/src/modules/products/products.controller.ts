@@ -14,7 +14,6 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
-import { CurrentOrganization } from '../../common/decorators/current-organization.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { SupabaseAuthGuard } from '../../common/guards/supabase-auth.guard';
@@ -31,35 +30,31 @@ export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
   @Get()
-  findAll(@CurrentOrganization() organizationId: string, @Query() query: PaginationParams) {
-    return this.productsService.findAll(organizationId, query);
+  findAll(@Query() query: PaginationParams) {
+    return this.productsService.findAll(query);
   }
 
   @Get(':id')
-  findOne(@CurrentOrganization() organizationId: string, @Param('id') id: string) {
-    return this.productsService.findOne(organizationId, id);
+  findOne(@Param('id') id: string) {
+    return this.productsService.findOne(id);
   }
 
   @Post()
-  @Roles('admin', 'manager')
-  create(@CurrentOrganization() organizationId: string, @Body() dto: CreateProductDto) {
-    return this.productsService.create(organizationId, dto);
+  @Roles('super_admin', 'admin', 'manager')
+  create(@Body() dto: CreateProductDto) {
+    return this.productsService.create(dto);
   }
 
   @Patch(':id')
-  @Roles('admin', 'manager')
-  update(
-    @CurrentOrganization() organizationId: string,
-    @Param('id') id: string,
-    @Body() dto: UpdateProductDto,
-  ) {
-    return this.productsService.update(organizationId, id, dto);
+  @Roles('super_admin', 'admin', 'manager')
+  update(@Param('id') id: string, @Body() dto: UpdateProductDto) {
+    return this.productsService.update(id, dto);
   }
 
   @Delete(':id')
-  @Roles('admin', 'manager')
+  @Roles('super_admin', 'admin')
   @HttpCode(HttpStatus.NO_CONTENT)
-  remove(@CurrentOrganization() organizationId: string, @Param('id') id: string) {
-    return this.productsService.remove(organizationId, id);
+  remove(@Param('id') id: string) {
+    return this.productsService.remove(id);
   }
 }

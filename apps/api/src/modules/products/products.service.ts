@@ -10,10 +10,7 @@ import { UpdateProductDto } from './dto/update-product.dto';
 export class ProductsService {
   constructor(private readonly supabaseService: SupabaseService) {}
 
-  async findAll(
-    organizationId: string,
-    params: PaginationParams,
-  ): Promise<PaginatedResult<Product>> {
+  async findAll(params: PaginationParams): Promise<PaginatedResult<Product>> {
     const page = params.page ?? 1;
     const pageSize = params.pageSize ?? 20;
     const from = (page - 1) * pageSize;
@@ -23,7 +20,6 @@ export class ProductsService {
       .getAdminClient()
       .from('products')
       .select('*', { count: 'exact' })
-      .eq('organization_id', organizationId)
       .range(from, to)
       .order(params.sortBy ?? 'created_at', { ascending: params.sortOrder === 'asc' });
 
@@ -44,12 +40,11 @@ export class ProductsService {
     };
   }
 
-  async findOne(organizationId: string, id: string): Promise<Product> {
+  async findOne(id: string): Promise<Product> {
     const { data, error } = await this.supabaseService
       .getAdminClient()
       .from('products')
       .select('*')
-      .eq('organization_id', organizationId)
       .eq('id', id)
       .single();
 
@@ -60,22 +55,18 @@ export class ProductsService {
     return data as unknown as Product;
   }
 
-  async create(organizationId: string, dto: CreateProductDto): Promise<Product> {
+  async create(dto: CreateProductDto): Promise<Product> {
     const { data, error } = await this.supabaseService
       .getAdminClient()
       .from('products')
       .insert({
-        organization_id: organizationId,
         sku: dto.sku,
         name: dto.name,
         description: dto.description,
-        category_id: dto.categoryId,
-        supplier_id: dto.supplierId,
+        category: dto.category,
         unit_price: dto.unitPrice,
         cost_price: dto.costPrice,
         reorder_level: dto.reorderLevel ?? 0,
-        reorder_quantity: dto.reorderQuantity ?? 0,
-        is_active: dto.isActive ?? true,
       })
       .select()
       .single();
@@ -87,8 +78,8 @@ export class ProductsService {
     return data as unknown as Product;
   }
 
-  async update(organizationId: string, id: string, dto: UpdateProductDto): Promise<Product> {
-    await this.findOne(organizationId, id);
+  async update(id: string, dto: UpdateProductDto): Promise<Product> {
+    await this.findOne(id);
 
     const { data, error } = await this.supabaseService
       .getAdminClient()
@@ -97,15 +88,11 @@ export class ProductsService {
         sku: dto.sku,
         name: dto.name,
         description: dto.description,
-        category_id: dto.categoryId,
-        supplier_id: dto.supplierId,
+        category: dto.category,
         unit_price: dto.unitPrice,
         cost_price: dto.costPrice,
         reorder_level: dto.reorderLevel,
-        reorder_quantity: dto.reorderQuantity,
-        is_active: dto.isActive,
       })
-      .eq('organization_id', organizationId)
       .eq('id', id)
       .select()
       .single();
@@ -117,14 +104,13 @@ export class ProductsService {
     return data as unknown as Product;
   }
 
-  async remove(organizationId: string, id: string): Promise<void> {
-    await this.findOne(organizationId, id);
+  async remove(id: string): Promise<void> {
+    await this.findOne(id);
 
     const { error } = await this.supabaseService
       .getAdminClient()
       .from('products')
       .delete()
-      .eq('organization_id', organizationId)
       .eq('id', id);
 
     if (error) {

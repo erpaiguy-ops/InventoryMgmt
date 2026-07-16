@@ -11,8 +11,4 @@ export class RegisterDto {
   @IsString()
   @MinLength(1)
   fullName!: string;
-
-  @IsString()
-  @MinLength(1)
-  organizationName!: string;
 }

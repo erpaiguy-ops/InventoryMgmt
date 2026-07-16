@@ -5,7 +5,6 @@ import type { Request } from 'express';
 import { SupabaseService } from '../../modules/supabase/supabase.service';
 
 export interface RequestProfile {
-  organizationId: string;
   role: string;
 }
 
@@ -32,7 +31,7 @@ export class SupabaseAuthGuard implements CanActivate {
     const { data: profile, error } = await this.supabaseService
       .getAdminClient()
       .from('profiles')
-      .select('organization_id, role')
+      .select('role')
       .eq('id', user.id)
       .single();
 
@@ -41,7 +40,7 @@ export class SupabaseAuthGuard implements CanActivate {
     }
 
     request.user = user;
-    request.profile = { organizationId: profile.organization_id, role: profile.role };
+    request.profile = { role: profile.role };
     return true;
   }
 
