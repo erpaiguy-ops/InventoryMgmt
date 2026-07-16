@@ -1,0 +1,23 @@
+{
+  "name": "@inventory-mgmt/database",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "link": "npx --yes supabase@latest link --project-ref $SUPABASE_PROJECT_ID",
+    "migrate": "npx --yes supabase@latest db push --linked",
+    "migrate:new": "npx --yes supabase@latest migration new",
+    "migrate:diff": "npx --yes supabase@latest db diff --linked -f",
+    "seed": "npx --yes supabase@latest db execute --linked -f supabase/seeds/seed.sql",
+    "types:generate": "npx --yes supabase@latest gen types typescript --linked --schema public > src/database.types.ts",
+    "lint": "eslint src --ext .ts",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist *.tsbuildinfo"
+  },
+  "devDependencies": {
+    "@inventory-mgmt/eslint-config": "workspace:*",
+    "typescript": "^5.5.4"
+  }
+}

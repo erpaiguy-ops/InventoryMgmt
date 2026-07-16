@@ -1,0 +1,8 @@
+# Supabase CLI configuration.
+# This project is cloud-only: there is no local Supabase stack (`supabase start`
+# is not used). This file exists so `supabase link` / `supabase db push` /
+# `supabase migration` commands can target the linked cloud project below.
+project_id = "dmoqvnkdnrclojhcpnre"
+
+[db]
+major_version = 15
