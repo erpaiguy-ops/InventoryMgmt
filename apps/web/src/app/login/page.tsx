@@ -2,13 +2,12 @@
 
 import { useFormState, useFormStatus } from 'react-dom';
 
-import { loginAction, type LoginState } from './actions';
-
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
+import { loginAction, type LoginState } from './actions';
 
 const initialState: LoginState = {};
 
