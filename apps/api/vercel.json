@@ -2,7 +2,7 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
   "installCommand": "cd ../.. && pnpm install --frozen-lockfile --prod=false",
-  "buildCommand": "cd ../.. && npx turbo run build --filter=@inventory-mgmt/shared-types --filter=@inventory-mgmt/database",
+  "buildCommand": "cd ../.. && npx turbo run build --filter=@inventory-mgmt/shared-types --filter=@inventory-mgmt/database --filter=@inventory-mgmt/api",
   "outputDirectory": "public",
   "rewrites": [{ "source": "/(.*)", "destination": "/api/index" }]
 }
