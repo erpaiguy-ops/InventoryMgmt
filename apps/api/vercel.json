@@ -4,5 +4,11 @@
   "installCommand": "cd ../.. && pnpm install --frozen-lockfile --prod=false",
   "buildCommand": "cd ../.. && npx turbo run build --filter=@inventory-mgmt/shared-types --filter=@inventory-mgmt/database --filter=@inventory-mgmt/api",
   "outputDirectory": "public",
+  "functions": {
+    "api/index.js": {
+      "memory": 1024,
+      "maxDuration": 10
+    }
+  },
   "rewrites": [{ "source": "/(.*)", "destination": "/api/index" }]
 }
