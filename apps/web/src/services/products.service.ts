@@ -16,6 +16,6 @@ export const productsService = {
   get: (id: string) => apiClient.get<Product>(`/products/${id}`),
   create: (payload: Partial<Product>) => apiClient.post<Product>('/products', payload),
   update: (id: string, payload: Partial<Product>) =>
-    apiClient.patch<Product>(`/products/${id}`, payload),
+    apiClient.put<Product>(`/products/${id}`, payload),
   remove: (id: string) => apiClient.delete<void>(`/products/${id}`),
 };

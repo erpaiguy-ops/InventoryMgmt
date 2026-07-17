@@ -17,7 +17,7 @@
     "JWT_EXPIRES_IN",
     "PORT",
     "API_PREFIX",
-    "CORS_ORIGIN",
+    "FRONTEND_URL",
     "LOG_LEVEL"
   ],
   "tasks": {

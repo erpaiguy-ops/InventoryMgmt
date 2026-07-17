@@ -41,7 +41,7 @@ pnpm dev
 This starts both apps in parallel via Turborepo:
 
 - Web: http://localhost:3000
-- API: http://localhost:3001/api/v1 (Swagger docs at `/api/docs` outside production)
+- API: http://localhost:3001/api (Swagger docs at `/api/docs` outside production)
 
 ## Environment variables
 
