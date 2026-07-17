@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 
 import { QueryProvider } from '@/components/providers/query-provider';
+import { Toaster } from '@/components/ui/sonner';
 
 import './globals.css';
 
@@ -14,6 +15,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className="font-sans">
         <QueryProvider>{children}</QueryProvider>
+        <Toaster richColors closeButton />
       </body>
     </html>
   );

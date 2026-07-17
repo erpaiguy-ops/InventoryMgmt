@@ -28,6 +28,10 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   });
 
   if (!response.ok) {
+    if (response.status === 401 && typeof window !== 'undefined') {
+      window.location.href = '/login';
+    }
+
     const body = (await response.json().catch(() => null)) as {
       error?: { message?: string };
     } | null;
