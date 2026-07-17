@@ -1,27 +1,24 @@
-import type { Timestamps } from './common';
-
-export enum UserRole {
+export enum ProfileRole {
+  SUPER_ADMIN = 'super_admin',
   ADMIN = 'admin',
   MANAGER = 'manager',
   STAFF = 'staff',
-  VIEWER = 'viewer',
 }
 
-export interface User extends Timestamps {
+export interface Profile {
   id: string;
   email: string;
-  fullName: string;
-  role: UserRole;
-  organizationId: string;
-  isActive: boolean;
-  avatarUrl?: string | null;
+  fullName: string | null;
+  role: ProfileRole;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface AuthSession {
   accessToken: string;
   refreshToken: string;
   expiresAt: number;
-  user: User;
+  user: Profile;
 }
 
 export interface LoginRequest {
@@ -33,5 +30,4 @@ export interface RegisterRequest {
   email: string;
   password: string;
   fullName: string;
-  organizationName: string;
 }

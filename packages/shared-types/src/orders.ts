@@ -1,52 +1,60 @@
-import type { Timestamps } from './common';
-
-export enum OrderStatus {
+export enum PurchaseOrderStatus {
   DRAFT = 'draft',
   PENDING = 'pending',
-  APPROVED = 'approved',
-  FULFILLED = 'fulfilled',
+  RECEIVED = 'received',
   CANCELLED = 'cancelled',
 }
 
-export interface PurchaseOrderLine {
+export interface PurchaseOrderItem {
   id: string;
-  productId: string;
-  quantity: number;
-  unitCost: number;
-}
-
-export interface PurchaseOrder extends Timestamps {
-  id: string;
-  organizationId: string;
-  supplierId: string;
-  warehouseId: string;
-  status: OrderStatus;
-  lines: PurchaseOrderLine[];
-  expectedAt?: string | null;
-  createdBy: string;
-}
-
-export interface SalesOrderLine {
-  id: string;
+  poId: string;
   productId: string;
   quantity: number;
   unitPrice: number;
+  totalPrice: number;
 }
 
-export interface Customer extends Timestamps {
+export interface PurchaseOrder {
   id: string;
-  organizationId: string;
-  name: string;
-  email?: string | null;
-  phone?: string | null;
+  poNumber: string;
+  supplierId: string | null;
+  orderDate: string;
+  expectedDelivery: string | null;
+  status: PurchaseOrderStatus;
+  totalAmount: number | null;
+  notes: string | null;
+  createdBy: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
-export interface SalesOrder extends Timestamps {
+export enum SalesOrderStatus {
+  DRAFT = 'draft',
+  CONFIRMED = 'confirmed',
+  SHIPPED = 'shipped',
+  DELIVERED = 'delivered',
+  CANCELLED = 'cancelled',
+}
+
+export interface SalesOrderItem {
   id: string;
-  organizationId: string;
-  customerId: string;
-  warehouseId: string;
-  status: OrderStatus;
-  lines: SalesOrderLine[];
-  createdBy: string;
+  soId: string;
+  productId: string;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+}
+
+export interface SalesOrder {
+  id: string;
+  orderNumber: string;
+  customerName: string;
+  customerEmail: string | null;
+  orderDate: string;
+  status: SalesOrderStatus;
+  totalAmount: number | null;
+  notes: string | null;
+  createdBy: string | null;
+  createdAt: string;
+  updatedAt: string;
 }

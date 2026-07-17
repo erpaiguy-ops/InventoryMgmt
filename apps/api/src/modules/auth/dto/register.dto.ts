@@ -1,4 +1,11 @@
-import { IsEmail, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsEnum, IsOptional, IsString, MinLength } from 'class-validator';
+
+export enum RegisterRole {
+  SUPER_ADMIN = 'super_admin',
+  ADMIN = 'admin',
+  MANAGER = 'manager',
+  STAFF = 'staff',
+}
 
 export class RegisterDto {
   @IsEmail()
@@ -12,7 +19,7 @@ export class RegisterDto {
   @MinLength(1)
   fullName!: string;
 
-  @IsString()
-  @MinLength(1)
-  organizationName!: string;
+  @IsOptional()
+  @IsEnum(RegisterRole)
+  role?: RegisterRole;
 }

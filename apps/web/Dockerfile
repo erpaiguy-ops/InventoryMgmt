@@ -23,4 +23,8 @@ COPY --from=build /repo/apps/web/.next/static ./apps/web/.next/static
 COPY --from=build /repo/apps/web/public ./apps/web/public
 
 EXPOSE 3000
+# The root route redirects (307) depending on auth state, so any
+# non-5xx response indicates the server is up and routing requests.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:3000/',(r)=>process.exit(r.statusCode<500?0:1)).on('error',()=>process.exit(1))"
 CMD ["node", "apps/web/server.js"]

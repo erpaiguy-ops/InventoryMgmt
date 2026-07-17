@@ -1,41 +1,31 @@
 -- ==============================================================================
 -- Development seed data
 -- Run with: pnpm --filter @inventory-mgmt/database seed
--- Note: profiles reference auth.users; create a user via Supabase Auth first
--- and update the profile insert below with that user's id if you want a
--- fully linked demo login.
+--
+-- profiles are populated automatically by the on_auth_user_created trigger
+-- when a user signs up via Supabase Auth — there is nothing to seed here.
+-- After your first signup, promote yourself if needed:
+--   update public.profiles set role = 'super_admin' where email = 'you@example.com';
 -- ==============================================================================
 
-insert into public.organizations (id, name)
-values ('00000000-0000-0000-0000-000000000001', 'Demo Organization')
+insert into public.suppliers (id, name, contact_person, email, phone)
+values ('00000000-0000-0000-0000-000000000030', 'Acme Supply Co.', 'Jamie Rivera', 'sales@acmesupply.example', '555-0100')
 on conflict (id) do nothing;
 
-insert into public.warehouses (id, organization_id, name, is_default)
-values ('00000000-0000-0000-0000-000000000010', '00000000-0000-0000-0000-000000000001', 'Main Warehouse', true)
-on conflict (id) do nothing;
-
-insert into public.categories (id, organization_id, name)
+-- Inserting a product auto-creates its inventory row (quantity 0) via the
+-- create_inventory_row trigger.
+insert into public.products (id, sku, name, category, unit_price, cost_price, reorder_level)
 values
-  ('00000000-0000-0000-0000-000000000020', '00000000-0000-0000-0000-000000000001', 'Electronics'),
-  ('00000000-0000-0000-0000-000000000021', '00000000-0000-0000-0000-000000000001', 'Office Supplies')
+  ('00000000-0000-0000-0000-000000000040', 'SKU-0001', 'Wireless Mouse', 'Electronics', 24.99, 12.50, 20),
+  ('00000000-0000-0000-0000-000000000041', 'SKU-0002', 'A4 Paper Ream', 'Office Supplies', 5.99, 3.00, 100)
 on conflict (id) do nothing;
 
-insert into public.suppliers (id, organization_id, name, email)
-values ('00000000-0000-0000-0000-000000000030', '00000000-0000-0000-0000-000000000001', 'Acme Supply Co.', 'sales@acmesupply.example')
-on conflict (id) do nothing;
+update public.inventory set warehouse_location = 'Main Warehouse'
+where product_id in ('00000000-0000-0000-0000-000000000040', '00000000-0000-0000-0000-000000000041');
 
-insert into public.products (id, organization_id, sku, name, category_id, supplier_id, unit_price, cost_price, reorder_level, reorder_quantity)
+-- Load initial stock through stock_movements (the canonical write path) so
+-- inventory.quantity and the audit log stay consistent.
+insert into public.stock_movements (product_id, quantity_change, movement_type, reference_type, notes)
 values
-  ('00000000-0000-0000-0000-000000000040', '00000000-0000-0000-0000-000000000001', 'SKU-0001', 'Wireless Mouse', '00000000-0000-0000-0000-000000000020', '00000000-0000-0000-0000-000000000030', 24.99, 12.50, 20, 50),
-  ('00000000-0000-0000-0000-000000000041', '00000000-0000-0000-0000-000000000001', 'SKU-0002', 'A4 Paper Ream', '00000000-0000-0000-0000-000000000021', '00000000-0000-0000-0000-000000000030', 5.99, 3.00, 100, 200)
-on conflict (id) do nothing;
-
-insert into public.stock_levels (product_id, warehouse_id, quantity_on_hand, quantity_reserved)
-values
-  ('00000000-0000-0000-0000-000000000040', '00000000-0000-0000-0000-000000000010', 75, 5),
-  ('00000000-0000-0000-0000-000000000041', '00000000-0000-0000-0000-000000000010', 300, 0)
-on conflict (product_id, warehouse_id) do nothing;
-
-insert into public.customers (id, organization_id, name, email)
-values ('00000000-0000-0000-0000-000000000050', '00000000-0000-0000-0000-000000000001', 'Northwind Retail', 'orders@northwind.example')
-on conflict (id) do nothing;
+  ('00000000-0000-0000-0000-000000000040', 75, 'adjustment', 'adjustment', 'Initial stock load'),
+  ('00000000-0000-0000-0000-000000000041', 300, 'adjustment', 'adjustment', 'Initial stock load');

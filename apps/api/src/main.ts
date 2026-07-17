@@ -1,4 +1,4 @@
-import { ValidationPipe, VersioningType } from '@nestjs/common';
+import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
@@ -15,14 +15,23 @@ async function bootstrap(): Promise<void> {
   const configService = app.get(ConfigService<AppConfig, true>);
   const port = configService.get('port', { infer: true });
   const apiPrefix = configService.get('apiPrefix', { infer: true });
-  const corsOrigin = configService.get('corsOrigin', { infer: true });
+  const frontendUrl = configService.get('frontendUrl', { infer: true });
   const nodeEnv = configService.get('nodeEnv', { infer: true });
 
   app.use(helmet());
-  app.enableCors({ origin: corsOrigin, credentials: true });
-  app.setGlobalPrefix(apiPrefix);
-  app.enableVersioning({ type: VersioningType.URI, defaultVersion: '1' });
+  app.enableCors({
+    origin: frontendUrl,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  });
+  // Exclude /health from the global prefix so container orchestrators and
+  // load balancers can probe a stable, convention-following path without
+  // needing to know the API prefix.
+  app.setGlobalPrefix(apiPrefix, { exclude: ['health'] });
 
+  // Global validation: strip unknown properties, reject unknown properties,
+  // and coerce primitives (e.g. query string numbers) to their DTO types.
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -32,6 +41,9 @@ async function bootstrap(): Promise<void> {
     }),
   );
 
+  // The global exception filter and request-logging interceptor are
+  // registered as APP_FILTER / APP_INTERCEPTOR providers in AppModule so
+  // they participate in Nest's dependency injection.
   if (nodeEnv !== 'production') {
     const swaggerConfig = new DocumentBuilder()
       .setTitle('Inventory Management ERP API')

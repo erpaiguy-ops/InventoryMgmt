@@ -1,4 +1,3 @@
-import type { PaginationParams } from '@inventory-mgmt/shared-types';
 import {
   Body,
   Controller,
@@ -7,59 +6,82 @@ import {
   HttpCode,
   HttpStatus,
   Param,
-  Patch,
   Post,
+  Put,
   Query,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
-import { CurrentOrganization } from '../../common/decorators/current-organization.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
+import { AuthGuard } from '../../common/guards/auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
-import { SupabaseAuthGuard } from '../../common/guards/supabase-auth.guard';
 
+import { BulkCreateProductsDto } from './dto/bulk-create-products.dto';
 import { CreateProductDto } from './dto/create-product.dto';
+import { ListProductsDto } from './dto/list-products.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ProductsService } from './products.service';
 
 @ApiTags('products')
 @ApiBearerAuth()
-@UseGuards(SupabaseAuthGuard, RolesGuard)
+@UseGuards(AuthGuard, RolesGuard)
 @Controller('products')
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
+  @Post()
+  @Roles('super_admin', 'admin', 'manager')
+  create(@Body() dto: CreateProductDto) {
+    return this.productsService.create(dto);
+  }
+
+  @Post('bulk')
+  @Roles('super_admin', 'admin', 'manager')
+  bulkCreate(@Body() dto: BulkCreateProductsDto) {
+    return this.productsService.bulkCreate(dto);
+  }
+
   @Get()
-  findAll(@CurrentOrganization() organizationId: string, @Query() query: PaginationParams) {
-    return this.productsService.findAll(organizationId, query);
+  findAll(@Query() query: ListProductsDto) {
+    return this.productsService.findAll(query);
+  }
+
+  @Get('categories')
+  getCategories() {
+    return this.productsService.getCategories();
+  }
+
+  @Get('low-stock')
+  getLowStock() {
+    return this.productsService.getLowStock();
+  }
+
+  @Get('stock-value')
+  getStockValue() {
+    return this.productsService.getStockValue();
+  }
+
+  @Get('sku/:sku')
+  findBySku(@Param('sku') sku: string) {
+    return this.productsService.findBySku(sku);
   }
 
   @Get(':id')
-  findOne(@CurrentOrganization() organizationId: string, @Param('id') id: string) {
-    return this.productsService.findOne(organizationId, id);
+  findOne(@Param('id') id: string) {
+    return this.productsService.findOne(id);
   }
 
-  @Post()
-  @Roles('admin', 'manager')
-  create(@CurrentOrganization() organizationId: string, @Body() dto: CreateProductDto) {
-    return this.productsService.create(organizationId, dto);
-  }
-
-  @Patch(':id')
-  @Roles('admin', 'manager')
-  update(
-    @CurrentOrganization() organizationId: string,
-    @Param('id') id: string,
-    @Body() dto: UpdateProductDto,
-  ) {
-    return this.productsService.update(organizationId, id, dto);
+  @Put(':id')
+  @Roles('super_admin', 'admin', 'manager')
+  update(@Param('id') id: string, @Body() dto: UpdateProductDto) {
+    return this.productsService.update(id, dto);
   }
 
   @Delete(':id')
-  @Roles('admin', 'manager')
+  @Roles('super_admin', 'admin')
   @HttpCode(HttpStatus.NO_CONTENT)
-  remove(@CurrentOrganization() organizationId: string, @Param('id') id: string) {
-    return this.productsService.remove(organizationId, id);
+  remove(@Param('id') id: string) {
+    return this.productsService.remove(id);
   }
 }

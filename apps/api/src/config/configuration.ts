@@ -2,7 +2,7 @@ export interface AppConfig {
   nodeEnv: string;
   port: number;
   apiPrefix: string;
-  corsOrigin: string;
+  frontendUrl: string;
   logLevel: string;
   supabase: {
     url: string;
@@ -19,7 +19,7 @@ export default (): AppConfig => ({
   nodeEnv: process.env.NODE_ENV ?? 'development',
   port: parseInt(process.env.PORT ?? '3001', 10),
   apiPrefix: process.env.API_PREFIX ?? 'api',
-  corsOrigin: process.env.CORS_ORIGIN ?? 'http://localhost:3000',
+  frontendUrl: process.env.FRONTEND_URL ?? 'http://localhost:3000',
   logLevel: process.env.LOG_LEVEL ?? 'log',
   supabase: {
     url: process.env.SUPABASE_URL ?? '',

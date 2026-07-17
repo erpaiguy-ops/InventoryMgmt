@@ -1,21 +1,45 @@
-import type { PaginatedResult, PaginationParams, Product } from '@inventory-mgmt/shared-types';
+import type { Inventory, PaginatedResult, Product } from '@inventory-mgmt/shared-types';
+
+import { toQueryString } from '@/utils/query-string';
 
 import { apiClient } from './api-client';
 
-export const productsService = {
-  list: (params: PaginationParams = {}) => {
-    const query = new URLSearchParams(
-      Object.entries(params).reduce<Record<string, string>>((acc, [key, value]) => {
-        if (value !== undefined) acc[key] = String(value);
-        return acc;
-      }, {}),
-    ).toString();
+export type ProductWithInventory = Product & { inventory: Inventory | null };
 
-    return apiClient.get<PaginatedResult<Product>>(`/products${query ? `?${query}` : ''}`);
-  },
-  get: (id: string) => apiClient.get<Product>(`/products/${id}`),
-  create: (payload: Partial<Product>) => apiClient.post<Product>('/products', payload),
-  update: (id: string, payload: Partial<Product>) =>
-    apiClient.patch<Product>(`/products/${id}`, payload),
+export interface ListProductsParams {
+  search?: string;
+  category?: string;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+  page?: number;
+  pageSize?: number;
+}
+
+export interface ProductPayload {
+  sku?: string;
+  name: string;
+  description?: string;
+  category?: string;
+  unitPrice: number;
+  costPrice?: number;
+  reorderLevel?: number;
+}
+
+export const productsService = {
+  list: (params: ListProductsParams = {}) =>
+    apiClient.get<PaginatedResult<ProductWithInventory>>(`/products${toQueryString(params)}`),
+  get: (id: string) => apiClient.get<ProductWithInventory>(`/products/${id}`),
+  getBySku: (sku: string) => apiClient.get<ProductWithInventory>(`/products/sku/${sku}`),
+  getCategories: () => apiClient.get<string[]>('/products/categories'),
+  getLowStock: () => apiClient.get<ProductWithInventory[]>('/products/low-stock'),
+  getStockValue: () =>
+    apiClient.get<{ totalUnits: number; totalCostValue: number; totalRetailValue: number }>(
+      '/products/stock-value',
+    ),
+  create: (payload: ProductPayload) => apiClient.post<Product>('/products', payload),
+  bulkCreate: (products: ProductPayload[]) =>
+    apiClient.post<Product[]>('/products/bulk', { products }),
+  update: (id: string, payload: Partial<ProductPayload>) =>
+    apiClient.put<Product>(`/products/${id}`, payload),
   remove: (id: string) => apiClient.delete<void>(`/products/${id}`),
 };

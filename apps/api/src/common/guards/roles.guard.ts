@@ -4,7 +4,7 @@ import type { Request } from 'express';
 
 import { ROLES_KEY } from '../decorators/roles.decorator';
 
-import type { RequestProfile } from './supabase-auth.guard';
+import type { RequestProfile } from './auth.guard';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
