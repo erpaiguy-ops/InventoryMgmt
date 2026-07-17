@@ -19,7 +19,7 @@
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\" --ignore-path .gitignore",
     "db:migrate": "pnpm --filter @inventory-mgmt/database migrate",
     "db:seed": "pnpm --filter @inventory-mgmt/database seed",
-    "prepare": "husky"
+    "prepare": "husky || true"
   },
   "devDependencies": {
     "@types/node": "^20.14.0",
