@@ -1,11 +1,11 @@
 'use client';
 
-import type { ProfileRole } from '@inventory-mgmt/shared-types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { usersService } from '@/services/users.service';
+import { usersService, type CreateUserPayload } from '@/services/users.service';
 
 const USERS_KEY = 'users';
+const ROLES_KEY = 'roles';
 
 export function useUsers() {
   return useQuery({
@@ -14,20 +14,18 @@ export function useUsers() {
   });
 }
 
-export function useUserActivity(id: string | undefined) {
+export function useRoles() {
   return useQuery({
-    queryKey: [USERS_KEY, id, 'activity'],
-    queryFn: () => usersService.getActivity(id!),
-    enabled: Boolean(id),
+    queryKey: [ROLES_KEY],
+    queryFn: () => usersService.listRoles(),
   });
 }
 
-export function useInviteUser() {
+export function useCreateUser() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ email, role }: { email: string; role?: ProfileRole }) =>
-      usersService.invite(email, role),
+    mutationFn: (payload: CreateUserPayload) => usersService.create(payload),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: [USERS_KEY] });
     },
@@ -38,11 +36,18 @@ export function useUpdateUserRole() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, role }: { id: string; role: ProfileRole }) =>
-      usersService.updateRole(id, role),
+    mutationFn: ({ id, roleId }: { id: string; roleId: string }) =>
+      usersService.updateRole(id, roleId),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: [USERS_KEY] });
     },
+  });
+}
+
+export function useResetUserPassword() {
+  return useMutation({
+    mutationFn: ({ id, newPassword }: { id: string; newPassword: string }) =>
+      usersService.resetPassword(id, newPassword),
   });
 }
 

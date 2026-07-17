@@ -1,3 +1,4 @@
+import { ACTIONS, MODULES } from '@inventory-mgmt/shared-types';
 import {
   Body,
   Controller,
@@ -12,52 +13,73 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
-import { Roles } from '../../common/decorators/roles.decorator';
+import { CurrentTenant } from '../../common/decorators/current-tenant.decorator';
+import { RequirePermission } from '../../common/decorators/require-permission.decorator';
 import { AuthGuard } from '../../common/guards/auth.guard';
-import { RolesGuard } from '../../common/guards/roles.guard';
+import { PermissionsGuard } from '../../common/guards/permissions.guard';
 
-import { InviteUserDto } from './dto/invite-user.dto';
+import { CreateUserDto } from './dto/create-user.dto';
+import { ResetUserPasswordDto } from './dto/reset-user-password.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { UsersService } from './users.service';
 
 @ApiTags('users')
 @ApiBearerAuth()
-@UseGuards(AuthGuard, RolesGuard)
-@Roles('super_admin', 'admin')
+@UseGuards(AuthGuard, PermissionsGuard)
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
-  findAll() {
-    return this.usersService.findAll();
+  @RequirePermission(MODULES.USERS, ACTIONS.VIEW)
+  findAll(@CurrentTenant() tenantId: string) {
+    return this.usersService.findAll(tenantId);
   }
 
-  @Post('invite')
-  invite(@Body() dto: InviteUserDto) {
-    return this.usersService.inviteUser(dto);
+  // Declared before :id so Nest doesn't try to route "roles" as an :id param.
+  @Get('roles')
+  @RequirePermission(MODULES.USERS, ACTIONS.VIEW)
+  listRoles(@CurrentTenant() tenantId: string) {
+    return this.usersService.listRoles(tenantId);
+  }
+
+  @Post()
+  @RequirePermission(MODULES.USERS, ACTIONS.CREATE)
+  create(@CurrentTenant() tenantId: string, @Body() dto: CreateUserDto) {
+    return this.usersService.createUser(tenantId, dto);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.usersService.findOne(id);
+  @RequirePermission(MODULES.USERS, ACTIONS.VIEW)
+  findOne(@CurrentTenant() tenantId: string, @Param('id') id: string) {
+    return this.usersService.findOne(tenantId, id);
   }
 
   @Put(':id/role')
-  @Roles('super_admin')
-  updateRole(@Param('id') id: string, @Body() dto: UpdateRoleDto) {
-    return this.usersService.updateRole(id, dto);
+  @RequirePermission(MODULES.USERS, ACTIONS.MANAGE)
+  updateRole(
+    @CurrentTenant() tenantId: string,
+    @Param('id') id: string,
+    @Body() dto: UpdateRoleDto,
+  ) {
+    return this.usersService.updateRole(tenantId, id, dto);
+  }
+
+  @Put(':id/reset-password')
+  @RequirePermission(MODULES.USERS, ACTIONS.MANAGE)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  resetPassword(
+    @CurrentTenant() tenantId: string,
+    @Param('id') id: string,
+    @Body() dto: ResetUserPasswordDto,
+  ) {
+    return this.usersService.resetPassword(tenantId, id, dto);
   }
 
   @Delete(':id')
-  @Roles('super_admin')
+  @RequirePermission(MODULES.USERS, ACTIONS.DELETE)
   @HttpCode(HttpStatus.NO_CONTENT)
-  remove(@Param('id') id: string) {
-    return this.usersService.deleteUser(id);
-  }
-
-  @Get(':id/activity')
-  getActivity(@Param('id') id: string) {
-    return this.usersService.getActivityLog(id);
+  remove(@CurrentTenant() tenantId: string, @Param('id') id: string) {
+    return this.usersService.deleteUser(tenantId, id);
   }
 }

@@ -13,8 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/use-auth';
-import { useProfile } from '@/hooks/use-profile';
-import { ROLE_LABELS } from '@/lib/auth/permissions';
+import { usePrincipal } from '@/hooks/use-principal';
 import { ApiError } from '@/services/api-client';
 import { authService } from '@/services/auth.service';
 
@@ -38,8 +37,10 @@ type PasswordFormValues = z.infer<typeof passwordSchema>;
 
 function ProfileDetailsCard() {
   const { user } = useAuth();
-  const { profile } = useProfile();
+  const { principal } = usePrincipal();
   const queryClient = useQueryClient();
+  const fullName = principal?.type === 'tenant' ? principal.fullName : null;
+  const roleName = principal?.type === 'tenant' ? principal.roleName : null;
 
   const {
     register,
@@ -47,13 +48,13 @@ function ProfileDetailsCard() {
     formState: { errors, isSubmitting },
   } = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
-    values: { fullName: profile?.fullName ?? '' },
+    values: { fullName: fullName ?? '' },
   });
 
   const onSubmit = async (values: ProfileFormValues) => {
     try {
       await authService.updateProfile(values);
-      await queryClient.invalidateQueries({ queryKey: ['profile'] });
+      await queryClient.invalidateQueries({ queryKey: ['me'] });
       toast.success('Profile updated');
     } catch (error) {
       toast.error(error instanceof ApiError ? error.message : 'Failed to update profile');
@@ -68,7 +69,7 @@ function ProfileDetailsCard() {
       <CardContent className="space-y-4">
         <div className="flex items-center gap-2">
           <span className="text-muted-foreground text-sm">{user?.email}</span>
-          {profile ? <Badge variant="secondary">{ROLE_LABELS[profile.role]}</Badge> : null}
+          {roleName ? <Badge variant="secondary">{roleName}</Badge> : null}
         </div>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
@@ -143,7 +144,7 @@ function ChangePasswordCard() {
 }
 
 export default function ProfilePage() {
-  const { isLoading } = useProfile();
+  const { isLoading } = usePrincipal();
 
   if (isLoading) return <LoadingSpinner />;
 

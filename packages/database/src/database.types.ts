@@ -13,6 +13,10 @@ export type StockMovementType = 'purchase' | 'sale' | 'adjustment' | 'return';
 export type StockMovementReferenceType = 'purchase_order' | 'sales_order' | 'adjustment';
 export type NotificationType = 'info' | 'warning' | 'success' | 'error';
 
+export type V2OrganizationStatus = 'active' | 'suspended';
+export type V2ProfileStatus = 'active' | 'suspended';
+export type V2PermissionAction = 'view' | 'create' | 'update' | 'delete' | 'manage';
+
 export interface Database {
   public: {
     Tables: {
@@ -273,5 +277,134 @@ export interface Database {
       stock_movement_reference_type: StockMovementReferenceType;
       notification_type: NotificationType;
     };
+  };
+  v2: {
+    Tables: {
+      organizations: {
+        Row: {
+          id: string;
+          name: string;
+          slug: string;
+          status: V2OrganizationStatus;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          slug: string;
+          status?: V2OrganizationStatus;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['organizations']['Insert']>;
+        Relationships: [];
+      };
+      platform_owners: {
+        Row: {
+          id: string;
+          email: string;
+          full_name: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id: string;
+          email: string;
+          full_name?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['platform_owners']['Insert']>;
+        Relationships: [];
+      };
+      roles: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          slug: string;
+          name: string;
+          is_system: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          slug: string;
+          name: string;
+          is_system?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['roles']['Insert']>;
+        Relationships: [];
+      };
+      permissions: {
+        Row: {
+          id: string;
+          role_id: string;
+          module: string;
+          action: V2PermissionAction;
+          allow: boolean;
+        };
+        Insert: {
+          id?: string;
+          role_id: string;
+          module: string;
+          action: V2PermissionAction;
+          allow?: boolean;
+        };
+        Update: Partial<Database['v2']['Tables']['permissions']['Insert']>;
+        Relationships: [];
+      };
+      profiles: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          username: string;
+          role_id: string;
+          full_name: string | null;
+          status: V2ProfileStatus;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id: string;
+          tenant_id: string;
+          username: string;
+          role_id: string;
+          full_name?: string | null;
+          status?: V2ProfileStatus;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['profiles']['Insert']>;
+        Relationships: [];
+      };
+    };
+    Views: {
+      profile_with_permissions: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          username: string;
+          full_name: string | null;
+          status: V2ProfileStatus;
+          role_id: string;
+          role_slug: string;
+          role_name: string;
+          permissions: Record<string, V2PermissionAction[]>;
+        };
+        Relationships: [];
+      };
+    };
+    Functions: {
+      create_organization_with_defaults: {
+        Args: { org_name: string; org_slug: string };
+        Returns: string;
+      };
+    };
+    Enums: Record<string, never>;
   };
 }

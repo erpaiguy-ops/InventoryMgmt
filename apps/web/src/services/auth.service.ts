@@ -1,8 +1,16 @@
-import type { Profile } from '@inventory-mgmt/shared-types';
+import type { Principal } from '@inventory-mgmt/shared-types';
 
 import { createClient } from '@/lib/supabase/client';
 
 import { apiClient } from './api-client';
+
+export interface MeResponse {
+  id: string;
+  emailConfirmedAt: string | null;
+  createdAt: string;
+  lastSignInAt: string | null;
+  principal: Principal;
+}
 
 export interface UpdateProfilePayload {
   fullName?: string;
@@ -13,13 +21,12 @@ export interface ChangePasswordPayload {
   newPassword: string;
 }
 
+/** Shared by both the tenant app and the owner console — /auth/me, /auth/profile, /auth/change-password, and /auth/logout are all principal-agnostic on the backend. */
 export const authService = {
-  getProfile: () => apiClient.get<Profile>('/auth/profile'),
-  updateProfile: (payload: UpdateProfilePayload) =>
-    apiClient.put<Profile>('/auth/profile', payload),
+  getMe: () => apiClient.get<MeResponse>('/auth/me'),
+  updateProfile: (payload: UpdateProfilePayload) => apiClient.put<void>('/auth/profile', payload),
   changePassword: (payload: ChangePasswordPayload) =>
     apiClient.post<void>('/auth/change-password', payload),
-  requestPasswordReset: (email: string) => apiClient.post<void>('/auth/reset-password', { email }),
   async signOut(): Promise<void> {
     await apiClient.post<void>('/auth/logout').catch(() => undefined);
     await createClient().auth.signOut();

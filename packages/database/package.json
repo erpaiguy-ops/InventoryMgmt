@@ -11,7 +11,7 @@
     "migrate:new": "npx --yes supabase@latest migration new",
     "migrate:diff": "npx --yes supabase@latest db diff --linked -f",
     "seed": "npx --yes supabase@latest db execute --linked -f supabase/seeds/seed.sql",
-    "types:generate": "npx --yes supabase@latest gen types typescript --linked --schema public > src/database.types.ts",
+    "types:generate": "npx --yes supabase@latest gen types typescript --linked --schema public,v2 > src/database.types.ts",
     "lint": "eslint src --ext .ts",
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist *.tsbuildinfo"

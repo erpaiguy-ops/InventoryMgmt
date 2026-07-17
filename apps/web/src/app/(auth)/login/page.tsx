@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { useFormState, useFormStatus } from 'react-dom';
 
 import { Button } from '@/components/ui/button';
@@ -33,19 +32,15 @@ export default function LoginPage() {
       <CardContent>
         <form action={formAction} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input id="email" name="email" type="email" required autoComplete="email" />
+            <Label htmlFor="orgSlug">Organization</Label>
+            <Input id="orgSlug" name="orgSlug" type="text" required autoComplete="organization" />
           </div>
           <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="password">Password</Label>
-              <Link
-                href="/forgot-password"
-                className="text-muted-foreground text-xs hover:underline"
-              >
-                Forgot password?
-              </Link>
-            </div>
+            <Label htmlFor="username">Username</Label>
+            <Input id="username" name="username" type="text" required autoComplete="username" />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="password">Password</Label>
             <Input
               id="password"
               name="password"
@@ -58,10 +53,7 @@ export default function LoginPage() {
           <SubmitButton />
         </form>
         <p className="text-muted-foreground mt-4 text-center text-sm">
-          Don&apos;t have an account?{' '}
-          <Link href="/signup" className="text-foreground font-medium hover:underline">
-            Sign up
-          </Link>
+          Forgot your password? Ask your organization&apos;s admin to reset it for you.
         </p>
       </CardContent>
     </Card>

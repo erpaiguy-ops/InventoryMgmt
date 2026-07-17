@@ -1,0 +1,27 @@
+-- ==============================================================================
+-- v2 dev/demo seed — a sample organization to test tenant login against.
+--
+-- Run with: pnpm --filter @inventory-mgmt/database migrate (applies the v2
+-- migration first), then paste this file into the Supabase SQL Editor.
+--
+-- What this CANNOT seed: any real login-capable account. auth.users rows are
+-- managed by Supabase Auth (GoTrue) — passwords are hashed there, not
+-- insertable via plain SQL. Bootstrap accounts the same way v1's seed.sql
+-- always required a real signup for the first user:
+--
+-- 1. Platform owner (you): Supabase Dashboard -> Authentication -> Users ->
+--    Add user. Set an email/password, and under "User Metadata" set:
+--      { "v2_principal_type": "owner", "full_name": "Your Name" }
+--    This fires the v2.handle_new_auth_user trigger, creating your
+--    v2.platform_owners row. Log in at /owner/login.
+--
+-- 2. First tenant admin for the org seeded below: once logged in as owner,
+--    use the Owner Console (/owner/organizations) -> "Create admin" on the
+--    "Acme Corp" row. This is the supported bootstrap path (POST
+--    /owner/organizations/:id/bootstrap-admin) — it exists specifically
+--    because creating a tenant's very first user can't go through ordinary
+--    tenant user creation (that requires already being a user of that
+--    tenant). Log in at /login with organization slug "acme".
+-- ==============================================================================
+
+select v2.create_organization_with_defaults('Acme Corp', 'acme');

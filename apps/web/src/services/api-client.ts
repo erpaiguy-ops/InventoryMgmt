@@ -29,7 +29,9 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
   if (!response.ok) {
     if (response.status === 401 && typeof window !== 'undefined') {
-      window.location.href = '/login';
+      window.location.href = window.location.pathname.startsWith('/owner')
+        ? '/owner/login'
+        : '/login';
     }
 
     const body = (await response.json().catch(() => null)) as {

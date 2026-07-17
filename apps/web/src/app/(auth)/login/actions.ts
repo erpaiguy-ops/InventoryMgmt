@@ -1,5 +1,6 @@
 'use server';
 
+import { buildSyntheticEmail } from '@inventory-mgmt/shared-types';
 import { redirect } from 'next/navigation';
 
 import { createClient } from '@/lib/supabase/server';
@@ -9,14 +10,19 @@ export interface LoginState {
 }
 
 export async function loginAction(_prevState: LoginState, formData: FormData): Promise<LoginState> {
-  const email = String(formData.get('email') ?? '');
+  const orgSlug = String(formData.get('orgSlug') ?? '')
+    .trim()
+    .toLowerCase();
+  const username = String(formData.get('username') ?? '');
   const password = String(formData.get('password') ?? '');
+
+  const email = buildSyntheticEmail(orgSlug, username);
 
   const supabase = createClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) {
-    return { error: error.message };
+    return { error: 'Invalid organization, username, or password' };
   }
 
   redirect('/dashboard');

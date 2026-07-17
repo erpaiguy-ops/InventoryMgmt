@@ -1,19 +1,17 @@
+import type { Principal } from '@inventory-mgmt/shared-types';
 import { Body, Controller, Get, HttpCode, HttpStatus, Post, Put, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import type { User } from '@supabase/supabase-js';
 
+import { CurrentPrincipal } from '../../common/decorators/current-principal.decorator';
 import { CurrentToken } from '../../common/decorators/current-token.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
-import { Roles } from '../../common/decorators/roles.decorator';
 import { AuthGuard } from '../../common/guards/auth.guard';
-import { RolesGuard } from '../../common/guards/roles.guard';
 
 import { AuthService } from './auth.service';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
-import { RegisterDto } from './dto/register.dto';
-import { ResetPasswordDto } from './dto/reset-password.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 
 @ApiTags('auth')
@@ -21,14 +19,7 @@ import { UpdateProfileDto } from './dto/update-profile.dto';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post('register')
-  @UseGuards(AuthGuard, RolesGuard)
-  @Roles('super_admin', 'admin')
-  @ApiBearerAuth()
-  register(@Body() dto: RegisterDto) {
-    return this.authService.signUp(dto);
-  }
-
+  /** Tenant username/password login. No public self-registration — accounts are admin-created via UsersModule. */
   @Post('login')
   @HttpCode(HttpStatus.OK)
   login(@Body() dto: LoginDto) {
@@ -49,12 +40,7 @@ export class AuthController {
     return this.authService.refresh(dto.refreshToken);
   }
 
-  @Post('reset-password')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  async resetPassword(@Body() dto: ResetPasswordDto) {
-    await this.authService.resetPassword(dto);
-  }
-
+  /** No self-service email reset for tenant users — synthetic-email accounts have no real inbox. Admins reset via PUT /users/:id/reset-password. Platform owners keep self-service reset — see OwnerAuthController. */
   @Post('change-password')
   @UseGuards(AuthGuard)
   @ApiBearerAuth()
@@ -63,30 +49,25 @@ export class AuthController {
     await this.authService.changePassword(user, dto);
   }
 
-  @Get('profile')
-  @UseGuards(AuthGuard)
-  @ApiBearerAuth()
-  getProfile(@CurrentUser() user: User) {
-    return this.authService.getProfile(user.id);
-  }
-
   @Put('profile')
   @UseGuards(AuthGuard)
   @ApiBearerAuth()
-  updateProfile(@CurrentUser() user: User, @Body() dto: UpdateProfileDto) {
-    return this.authService.updateProfile(user.id, dto);
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async updateProfile(@CurrentPrincipal() principal: Principal, @Body() dto: UpdateProfileDto) {
+    await this.authService.updateProfile(principal, dto);
   }
 
+  /** Enriched with the already-resolved principal (from AuthGuard) — no extra query needed beyond what login already did. */
   @Get('me')
   @UseGuards(AuthGuard)
   @ApiBearerAuth()
-  getMe(@CurrentUser() user: User) {
+  getMe(@CurrentUser() user: User, @CurrentPrincipal() principal: Principal) {
     return {
       id: user.id,
-      email: user.email,
       emailConfirmedAt: user.email_confirmed_at,
       createdAt: user.created_at,
       lastSignInAt: user.last_sign_in_at,
+      principal,
     };
   }
 }

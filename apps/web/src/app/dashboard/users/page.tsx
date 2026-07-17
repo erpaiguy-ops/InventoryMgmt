@@ -1,8 +1,8 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ProfileRole, type Profile } from '@inventory-mgmt/shared-types';
-import { Trash2, UserPlus } from 'lucide-react';
+import { ACTIONS, hasPermission, MODULES } from '@inventory-mgmt/shared-types';
+import { KeyRound, Trash2, UserPlus } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -29,40 +29,54 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useProfile } from '@/hooks/use-profile';
-import { useDeleteUser, useInviteUser, useUpdateUserRole, useUsers } from '@/hooks/use-users';
-import { isAdmin, ROLE_LABELS } from '@/lib/auth/permissions';
+import { usePrincipal } from '@/hooks/use-principal';
+import {
+  useCreateUser,
+  useDeleteUser,
+  useResetUserPassword,
+  useRoles,
+  useUpdateUserRole,
+  useUsers,
+} from '@/hooks/use-users';
 import { ApiError } from '@/services/api-client';
+import type { TenantUser } from '@/services/users.service';
 import { formatDate } from '@/utils/format';
 
-const inviteSchema = z.object({
-  email: z.string().email('Invalid email'),
-  role: z.nativeEnum(ProfileRole).optional(),
+const createUserSchema = z.object({
+  username: z
+    .string()
+    .min(1, 'Username is required')
+    .regex(/^[a-z0-9._-]+$/, 'Lowercase letters, numbers, dots, underscores, hyphens only'),
+  password: z.string().min(8, 'Must be at least 8 characters'),
+  fullName: z.string().min(1, 'Full name is required'),
+  roleId: z.string().min(1, 'Role is required'),
 });
 
-type InviteValues = z.infer<typeof inviteSchema>;
+type CreateUserValues = z.infer<typeof createUserSchema>;
 
-function InviteUserDialog() {
+function CreateUserDialog() {
   const [open, setOpen] = useState(false);
-  const inviteUser = useInviteUser();
+  const { data: roles = [] } = useRoles();
+  const createUser = useCreateUser();
+
   const {
     register,
     handleSubmit,
     reset,
-    formState: { errors },
-  } = useForm<InviteValues>({ resolver: zodResolver(inviteSchema) });
+    setValue,
+    watch,
+    formState: { errors, isSubmitting },
+  } = useForm<CreateUserValues>({ resolver: zodResolver(createUserSchema) });
 
-  const onSubmit = (values: InviteValues) => {
-    inviteUser.mutate(values, {
-      onSuccess: () => {
-        toast.success(`Invitation sent to ${values.email}`);
-        reset();
-        setOpen(false);
-      },
-      onError: (error) => {
-        toast.error(error instanceof ApiError ? error.message : 'Failed to invite user');
-      },
-    });
+  const onSubmit = async (values: CreateUserValues) => {
+    try {
+      await createUser.mutateAsync(values);
+      toast.success(`${values.username} created`);
+      reset();
+      setOpen(false);
+    } catch (error) {
+      toast.error(error instanceof ApiError ? error.message : 'Failed to create user');
+    }
   };
 
   return (
@@ -70,39 +84,56 @@ function InviteUserDialog() {
       <DialogTrigger asChild>
         <Button>
           <UserPlus className="mr-2 h-4 w-4" />
-          Invite user
+          Add user
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Invite user</DialogTitle>
+          <DialogTitle>Add user</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" {...register('email')} />
-            {errors.email ? (
-              <p className="text-destructive text-sm">{errors.email.message}</p>
+            <Label htmlFor="username">Username</Label>
+            <Input id="username" {...register('username')} />
+            {errors.username ? (
+              <p className="text-destructive text-sm">{errors.username.message}</p>
             ) : null}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="role">Role</Label>
-            <select
-              id="role"
-              {...register('role')}
-              className="border-input h-9 w-full rounded-md border bg-transparent px-3 text-sm"
-            >
-              <option value="">Staff (default)</option>
-              {Object.values(ProfileRole).map((role) => (
-                <option key={role} value={role}>
-                  {ROLE_LABELS[role]}
-                </option>
-              ))}
-            </select>
+            <Label htmlFor="fullName">Full name</Label>
+            <Input id="fullName" {...register('fullName')} />
+            {errors.fullName ? (
+              <p className="text-destructive text-sm">{errors.fullName.message}</p>
+            ) : null}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="password">Password</Label>
+            <Input id="password" type="password" {...register('password')} />
+            {errors.password ? (
+              <p className="text-destructive text-sm">{errors.password.message}</p>
+            ) : null}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="roleId">Role</Label>
+            <Select value={watch('roleId')} onValueChange={(value) => setValue('roleId', value)}>
+              <SelectTrigger id="roleId">
+                <SelectValue placeholder="Select a role" />
+              </SelectTrigger>
+              <SelectContent>
+                {roles.map((role) => (
+                  <SelectItem key={role.id} value={role.id}>
+                    {role.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.roleId ? (
+              <p className="text-destructive text-sm">{errors.roleId.message}</p>
+            ) : null}
           </div>
           <DialogFooter>
-            <Button type="submit" disabled={inviteUser.isPending}>
-              {inviteUser.isPending ? 'Sending...' : 'Send invite'}
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Creating...' : 'Create'}
             </Button>
           </DialogFooter>
         </form>
@@ -111,22 +142,52 @@ function InviteUserDialog() {
   );
 }
 
+function ResetPasswordButton({ userId }: { userId: string }) {
+  const resetPassword = useResetUserPassword();
+
+  const handleClick = () => {
+    const newPassword = window.prompt('Enter a new password for this user (min 8 characters):');
+    if (!newPassword) return;
+    if (newPassword.length < 8) {
+      toast.error('Password must be at least 8 characters');
+      return;
+    }
+
+    resetPassword.mutate(
+      { id: userId, newPassword },
+      {
+        onSuccess: () => toast.success('Password reset'),
+        onError: (error) =>
+          toast.error(error instanceof ApiError ? error.message : 'Failed to reset password'),
+      },
+    );
+  };
+
+  return (
+    <Button variant="ghost" size="icon" onClick={handleClick} disabled={resetPassword.isPending}>
+      <KeyRound className="h-4 w-4" />
+    </Button>
+  );
+}
+
 export default function UsersPage() {
-  const { profile, isLoading: isProfileLoading } = useProfile();
+  const { principal, isLoading: isPrincipalLoading } = usePrincipal();
   const { data: users = [], isLoading } = useUsers();
+  const { data: roles = [] } = useRoles();
   const updateRole = useUpdateUserRole();
   const deleteUser = useDeleteUser();
 
-  if (isProfileLoading) return <LoadingSpinner />;
+  if (isPrincipalLoading) return <LoadingSpinner />;
 
-  if (!isAdmin(profile?.role)) {
-    return <p className="text-muted-foreground">You don&apos;t have access to this page.</p>;
-  }
+  const permissions = principal?.type === 'tenant' ? principal.permissions : undefined;
+  const canManage = hasPermission(permissions, MODULES.USERS, ACTIONS.MANAGE);
+  const canDelete = hasPermission(permissions, MODULES.USERS, ACTIONS.DELETE);
+  const canCreate = hasPermission(permissions, MODULES.USERS, ACTIONS.CREATE);
 
-  const isSuperAdmin = profile?.role === ProfileRole.SUPER_ADMIN;
+  const roleName = (roleId: string) => roles.find((role) => role.id === roleId)?.name ?? roleId;
 
-  const handleDelete = (user: Profile) => {
-    if (!window.confirm(`Delete user ${user.email}? This cannot be undone.`)) return;
+  const handleDelete = (user: TenantUser) => {
+    if (!window.confirm(`Delete user ${user.username}? This cannot be undone.`)) return;
 
     deleteUser.mutate(user.id, {
       onSuccess: () => toast.success('User deleted'),
@@ -136,19 +197,19 @@ export default function UsersPage() {
     });
   };
 
-  const columns: DataTableColumn<Profile>[] = [
-    { key: 'email', header: 'Email' },
+  const columns: DataTableColumn<TenantUser>[] = [
+    { key: 'username', header: 'Username' },
     { key: 'fullName', header: 'Name', render: (u) => u.fullName ?? '—' },
     {
       key: 'role',
       header: 'Role',
       render: (u) =>
-        isSuperAdmin ? (
+        canManage ? (
           <Select
-            value={u.role}
-            onValueChange={(role) =>
+            value={u.roleId}
+            onValueChange={(roleId) =>
               updateRole.mutate(
-                { id: u.id, role: role as ProfileRole },
+                { id: u.id, roleId },
                 {
                   onSuccess: () => toast.success('Role updated'),
                   onError: (error) => {
@@ -160,33 +221,39 @@ export default function UsersPage() {
               )
             }
           >
-            <SelectTrigger className="w-36">
+            <SelectTrigger className="w-40">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {Object.values(ProfileRole).map((role) => (
-                <SelectItem key={role} value={role}>
-                  {ROLE_LABELS[role]}
+              {roles.map((role) => (
+                <SelectItem key={role.id} value={role.id}>
+                  {role.name}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         ) : (
-          <Badge variant="secondary">{ROLE_LABELS[u.role]}</Badge>
+          <Badge variant="secondary">{roleName(u.roleId)}</Badge>
         ),
     },
+    { key: 'status', header: 'Status', render: (u) => <Badge variant="outline">{u.status}</Badge> },
     { key: 'createdAt', header: 'Joined', render: (u) => formatDate(u.createdAt) },
-    ...(isSuperAdmin
+    ...(canManage || canDelete
       ? [
           {
             key: 'actions',
             header: '',
-            render: (u: Profile) => (
-              <Button variant="ghost" size="icon" onClick={() => handleDelete(u)}>
-                <Trash2 className="text-destructive h-4 w-4" />
-              </Button>
+            render: (u: TenantUser) => (
+              <div className="flex items-center justify-end gap-1">
+                {canManage ? <ResetPasswordButton userId={u.id} /> : null}
+                {canDelete ? (
+                  <Button variant="ghost" size="icon" onClick={() => handleDelete(u)}>
+                    <Trash2 className="text-destructive h-4 w-4" />
+                  </Button>
+                ) : null}
+              </div>
             ),
-          } satisfies DataTableColumn<Profile>,
+          } satisfies DataTableColumn<TenantUser>,
         ]
       : []),
   ];
@@ -195,7 +262,7 @@ export default function UsersPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Users</h1>
-        <InviteUserDialog />
+        {canCreate ? <CreateUserDialog /> : null}
       </div>
 
       <DataTable columns={columns} data={users} loading={isLoading} emptyMessage="No users yet." />

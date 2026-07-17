@@ -1,21 +1,36 @@
-import type { Profile, ProfileRole } from '@inventory-mgmt/shared-types';
-
 import { apiClient } from './api-client';
 
-export interface ActivityLogEntry {
-  type: 'stock_movement' | 'purchase_order' | 'sales_order';
+export interface TenantUser {
   id: string;
-  description: string;
+  username: string;
+  fullName: string | null;
+  roleId: string;
+  status: string;
   createdAt: string;
+  updatedAt: string;
+}
+
+export interface TenantRole {
+  id: string;
+  slug: string;
+  name: string;
+}
+
+export interface CreateUserPayload {
+  username: string;
+  password: string;
+  fullName: string;
+  roleId: string;
 }
 
 export const usersService = {
-  list: () => apiClient.get<Profile[]>('/users'),
-  get: (id: string) => apiClient.get<Profile>(`/users/${id}`),
-  invite: (email: string, role?: ProfileRole) =>
-    apiClient.post<{ userId: string; email: string }>('/users/invite', { email, role }),
-  updateRole: (id: string, role: ProfileRole) =>
-    apiClient.put<Profile>(`/users/${id}/role`, { role }),
+  list: () => apiClient.get<TenantUser[]>('/users'),
+  listRoles: () => apiClient.get<TenantRole[]>('/users/roles'),
+  get: (id: string) => apiClient.get<TenantUser>(`/users/${id}`),
+  create: (payload: CreateUserPayload) => apiClient.post<TenantUser>('/users', payload),
+  updateRole: (id: string, roleId: string) =>
+    apiClient.put<TenantUser>(`/users/${id}/role`, { roleId }),
+  resetPassword: (id: string, newPassword: string) =>
+    apiClient.put<void>(`/users/${id}/reset-password`, { newPassword }),
   remove: (id: string) => apiClient.delete<void>(`/users/${id}`),
-  getActivity: (id: string) => apiClient.get<ActivityLogEntry[]>(`/users/${id}/activity`),
 };

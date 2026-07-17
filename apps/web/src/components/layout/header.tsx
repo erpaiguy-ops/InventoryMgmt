@@ -16,22 +16,21 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/hooks/use-auth';
-import { useLowStockRealtime } from '@/hooks/use-inventory';
-import { useProfile } from '@/hooks/use-profile';
-import { ROLE_LABELS } from '@/lib/auth/permissions';
+import { usePrincipal } from '@/hooks/use-principal';
 import { authService } from '@/services/auth.service';
 
 import { MobileNav } from './mobile-nav';
-import { NotificationBell } from './notification-bell';
 
 export function Header() {
   const router = useRouter();
   const { user } = useAuth();
-  const { profile } = useProfile();
+  const { principal } = usePrincipal();
   const { theme, setTheme } = useTheme();
   const [signingOut, setSigningOut] = useState(false);
 
-  useLowStockRealtime(Boolean(user));
+  const displayName =
+    (principal?.type === 'tenant' ? principal.fullName : null) ?? principal?.type ?? 'Account';
+  const roleLabel = principal?.type === 'tenant' ? principal.roleName : null;
 
   const handleSignOut = async () => {
     setSigningOut(true);
@@ -52,7 +51,6 @@ export function Header() {
         <MobileNav />
       </div>
       <div className="flex items-center gap-1">
-        <NotificationBell />
         <Button
           variant="ghost"
           size="icon"
@@ -66,17 +64,15 @@ export function Header() {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="flex items-center gap-2">
               <UserIcon className="h-4 w-4" />
-              <span className="max-w-[160px] truncate text-sm">
-                {profile?.fullName ?? user?.email ?? 'Account'}
-              </span>
+              <span className="max-w-[160px] truncate text-sm">{displayName}</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuLabel>
               <div className="flex flex-col">
                 <span className="truncate text-sm font-medium">{user?.email}</span>
-                {profile ? (
-                  <span className="text-muted-foreground text-xs">{ROLE_LABELS[profile.role]}</span>
+                {roleLabel ? (
+                  <span className="text-muted-foreground text-xs">{roleLabel}</span>
                 ) : null}
               </div>
             </DropdownMenuLabel>

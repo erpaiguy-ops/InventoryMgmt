@@ -11,14 +11,13 @@ import configuration from './config/configuration';
 import { envValidationSchema } from './config/validation';
 import { AuthModule } from './modules/auth/auth.module';
 import { HealthModule } from './modules/health/health.module';
-import { InventoryModule } from './modules/inventory/inventory.module';
-import { ProductsModule } from './modules/products/products.module';
-import { PurchaseOrdersModule } from './modules/purchase-orders/purchase-orders.module';
-import { ReportsModule } from './modules/reports/reports.module';
-import { SalesOrdersModule } from './modules/sales-orders/sales-orders.module';
-import { SuppliersModule } from './modules/suppliers/suppliers.module';
+import { OwnerModule } from './modules/owner/owner.module';
 import { UsersModule } from './modules/users/users.module';
 
+// Products/Inventory/Suppliers/PurchaseOrders/SalesOrders/Reports are
+// deliberately unregistered on this branch (v2 Phase 1): their v1-model
+// tables and code don't exist in the v2 schema yet — they're rebuilt
+// tenant-scoped in Phase 3. Full working versions remain on `main`.
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -31,13 +30,8 @@ import { UsersModule } from './modules/users/users.module';
     SupabaseModule,
     HealthModule,
     AuthModule,
-    ProductsModule,
-    InventoryModule,
-    SuppliersModule,
-    PurchaseOrdersModule,
-    SalesOrdersModule,
-    ReportsModule,
     UsersModule,
+    OwnerModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: AllExceptionsFilter },
