@@ -1,0 +1,41 @@
+# Fly.io app config for the NestJS API.
+#
+# One-time setup before this is used by CI (see README.md "Deploying" section):
+#   1. `fly auth login`
+#   2. `fly apps create <your-unique-app-name>` and replace `app` below with it
+#      (fly app names are globally unique across all of Fly, so
+#      "inventory-mgmt-api" almost certainly needs to change)
+#   3. `fly secrets set SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... JWT_SECRET=... FRONTEND_URL=...`
+#      (anything in packages database/.env.example under "apps/api" except
+#      PORT/NODE_ENV, which are set below)
+#   4. Add a repo secret FLY_API_TOKEN (from `fly tokens create deploy`) so
+#      .github/workflows/deploy.yml can deploy on push to main
+
+app = "inventory-mgmt-api"
+primary_region = "iad"
+
+[build]
+  dockerfile = "apps/api/Dockerfile"
+
+[env]
+  NODE_ENV = "production"
+  PORT = "3001"
+  API_PREFIX = "api"
+
+[http_service]
+  internal_port = 3001
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [[http_service.checks]]
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "10s"
+    method = "GET"
+    path = "/health"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"

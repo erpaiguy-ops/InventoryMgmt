@@ -20,7 +20,9 @@ packages/
   eslint-config/Shared ESLint config (base, Next.js, NestJS variants)
 .github/workflows/
   ci.yml        Lint, typecheck, test, build on every PR/push
-  deploy.yml    Migrate Supabase + build/push Docker images on main
+  deploy.yml    Migrate Supabase, build/push Docker images, deploy API to
+                Fly.io on main (web deploys separately via Vercel's own
+                GitHub integration — see "Deploying to production" below)
 ```
 
 ## Prerequisites
@@ -95,6 +97,66 @@ project (via `.env`) for a production-like local environment:
 ```bash
 docker compose up --build
 ```
+
+## Deploying to production
+
+The API deploys to **Fly.io**; the web app deploys to **Vercel**. Both are
+one-time manual setups — after that, pushes to `main` deploy automatically.
+
+### API → Fly.io
+
+1. Install flyctl and log in: `curl -L https://fly.io/install.sh | sh` then
+   `fly auth login`.
+2. Create the app (Fly app names are globally unique, so pick your own):
+   ```bash
+   fly apps create <your-unique-app-name>
+   ```
+   Update the `app` field in `apps/api/fly.toml` to match.
+3. Set production secrets on Fly (values from Supabase Project Settings →
+   API, and your own `JWT_SECRET` and `FRONTEND_URL` — see `.env.example`):
+   ```bash
+   fly secrets set --app <your-unique-app-name> \
+     SUPABASE_URL=https://dmoqvnkdnrclojhcpnre.supabase.co \
+     SUPABASE_ANON_KEY=... \
+     SUPABASE_SERVICE_ROLE_KEY=... \
+     JWT_SECRET=... \
+     FRONTEND_URL=https://your-web-domain.vercel.app
+   ```
+4. In the GitHub repo, add secret `FLY_API_TOKEN` (from
+   `fly tokens create deploy`) and set repo **variable**
+   `FLY_DEPLOY_ENABLED=true` (Settings → Secrets and variables → Actions).
+   The deploy job is gated behind that variable so it stays a no-op until
+   this setup is done — otherwise every push to `main` would fail on
+   missing credentials.
+5. Push to `main`, or run the "Deploy" workflow manually
+   (Actions → Deploy → Run workflow).
+
+### Web → Vercel
+
+Vercel deploys via its own GitHub integration, not a GitHub Actions step —
+running both would race and produce duplicate deployments.
+
+1. In the [Vercel dashboard](https://vercel.com/new), import this repository.
+2. Set **Root Directory** to `apps/web`. Vercel will pick up
+   `apps/web/vercel.json`, which overrides the install/build commands to run
+   from the monorepo root (`pnpm install` + `turbo run build --filter=web`)
+   so the `@inventory-mgmt/shared-types` workspace dependency builds first.
+3. Add environment variables (Project Settings → Environment Variables):
+   ```
+   NEXT_PUBLIC_SUPABASE_URL=https://dmoqvnkdnrclojhcpnre.supabase.co
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=<production anon key>
+   NEXT_PUBLIC_API_URL=https://<your-fly-app>.fly.dev
+   NEXT_PUBLIC_APP_URL=https://<your-vercel-domain>
+   ```
+4. Deploy. Subsequent pushes to `main` auto-deploy; PRs get preview
+   deployments automatically.
+
+### After both are live
+
+- Update the Fly `FRONTEND_URL` secret (step 3 above) to the real Vercel
+  domain once you have it, so CORS allows the deployed frontend.
+- Verify: `curl https://<your-fly-app>.fly.dev/health` should return
+  `{"status":"ok",...}`.
 
 ## Code quality
 
