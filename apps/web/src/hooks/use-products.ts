@@ -36,6 +36,13 @@ export function useLowStockProducts() {
   });
 }
 
+export function useStockValue() {
+  return useQuery({
+    queryKey: [PRODUCTS_KEY, 'stock-value'],
+    queryFn: () => productsService.getStockValue(),
+  });
+}
+
 export function useCreateProduct() {
   const queryClient = useQueryClient();
 
