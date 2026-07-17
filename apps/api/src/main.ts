@@ -19,8 +19,16 @@ async function bootstrap(): Promise<void> {
   const nodeEnv = configService.get('nodeEnv', { infer: true });
 
   app.use(helmet());
-  app.enableCors({ origin: frontendUrl, credentials: true });
-  app.setGlobalPrefix(apiPrefix);
+  app.enableCors({
+    origin: frontendUrl,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  });
+  // Exclude /health from the global prefix so container orchestrators and
+  // load balancers can probe a stable, convention-following path without
+  // needing to know the API prefix.
+  app.setGlobalPrefix(apiPrefix, { exclude: ['health'] });
 
   // Global validation: strip unknown properties, reject unknown properties,
   // and coerce primitives (e.g. query string numbers) to their DTO types.
