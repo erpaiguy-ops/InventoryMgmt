@@ -108,9 +108,14 @@ export class SupabaseService {
    * a known limitation, not a loosening of the safety callers actually get
    * — T is still constrained to TenantScopedTableName at the call site.
    */
-  selectTenant<T extends TenantScopedTableName>(tenantId: string, table: T, columns = '*') {
+  selectTenant<T extends TenantScopedTableName>(
+    tenantId: string,
+    table: T,
+    columns = '*',
+    options?: { count?: 'exact' | 'planned' | 'estimated'; head?: boolean },
+  ) {
     const untypedClient = this.adminClient as unknown as SupabaseClient;
-    return untypedClient.from(table).select(columns).eq('tenant_id', tenantId);
+    return untypedClient.from(table).select(columns, options).eq('tenant_id', tenantId);
   }
 
   /**
@@ -123,10 +128,13 @@ export class SupabaseService {
   insertTenant<T extends TenantScopedTableName>(
     tenantId: string,
     table: T,
-    row: Record<string, unknown>,
+    row: Record<string, unknown> | Record<string, unknown>[],
   ) {
     const untypedClient = this.adminClient as unknown as SupabaseClient;
-    return untypedClient.from(table).insert({ ...row, tenant_id: tenantId });
+    const stamped = Array.isArray(row)
+      ? row.map((r) => ({ ...r, tenant_id: tenantId }))
+      : { ...row, tenant_id: tenantId };
+    return untypedClient.from(table).insert(stamped);
   }
 
   /** Tenant-scoped update — filters by tenant_id AND id, so a caller can never accidentally patch another tenant's row even by guessing an id. */
@@ -144,6 +152,20 @@ export class SupabaseService {
   deleteTenant<T extends TenantScopedTableName>(tenantId: string, table: T, id: string) {
     const untypedClient = this.adminClient as unknown as SupabaseClient;
     return untypedClient.from(table).delete().eq('tenant_id', tenantId).eq('id', id);
+  }
+
+  /**
+   * Order-item tables have no tenant_id of their own — they scope through
+   * their parent order (or product), so the selectTenant/insertTenant helpers
+   * can't cover them. Call sites MUST resolve the parent id through a
+   * tenant-scoped query first; the check_po_item_tenant/check_so_item_tenant
+   * DB triggers reject any cross-tenant write this discipline would miss.
+   * Deliberately restricted to the two item tables so it can't become a
+   * general loophole around the tenant-scoping guardrail.
+   */
+  getItemsTable(table: 'purchase_order_items' | 'sales_order_items') {
+    const untypedClient = this.adminClient as unknown as SupabaseClient;
+    return untypedClient.from(table);
   }
 
   async uploadFile(

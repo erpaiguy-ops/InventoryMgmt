@@ -6,6 +6,12 @@
  */
 
 export const MODULES = {
+  PRODUCTS: 'products',
+  INVENTORY: 'inventory',
+  SUPPLIERS: 'suppliers',
+  PURCHASE_ORDERS: 'purchase-orders',
+  SALES_ORDERS: 'sales-orders',
+  REPORTS: 'reports',
   USERS: 'users',
 } as const;
 

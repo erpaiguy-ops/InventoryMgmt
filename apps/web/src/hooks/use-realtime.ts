@@ -23,7 +23,9 @@ export function useRealtimeSubscription<T extends object>(
       .channel(`realtime:${table}`)
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table },
+        // v2 schema: this app's tables live in `v2`, not `public` (v1's schema).
+        // RLS still governs which rows a given client actually receives.
+        { event: '*', schema: 'v2', table },
         (payload: RealtimePostgresChangesPayload<T>) => onEventRef.current(payload),
       )
       .subscribe();

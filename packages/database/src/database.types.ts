@@ -382,6 +382,244 @@ export interface Database {
         Update: Partial<Database['v2']['Tables']['profiles']['Insert']>;
         Relationships: [];
       };
+      products: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          sku: string;
+          name: string;
+          description: string | null;
+          category: string | null;
+          unit_price: number;
+          cost_price: number | null;
+          reorder_level: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          sku: string;
+          name: string;
+          description?: string | null;
+          category?: string | null;
+          unit_price: number;
+          cost_price?: number | null;
+          reorder_level?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['products']['Insert']>;
+        Relationships: [];
+      };
+      inventory: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          product_id: string;
+          quantity: number;
+          warehouse_location: string | null;
+          last_updated: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          product_id: string;
+          quantity?: number;
+          warehouse_location?: string | null;
+          last_updated?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['inventory']['Insert']>;
+        Relationships: [];
+      };
+      suppliers: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          name: string;
+          contact_person: string | null;
+          email: string | null;
+          phone: string | null;
+          address: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          name: string;
+          contact_person?: string | null;
+          email?: string | null;
+          phone?: string | null;
+          address?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['suppliers']['Insert']>;
+        Relationships: [];
+      };
+      purchase_orders: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          po_number: string;
+          supplier_id: string | null;
+          order_date: string;
+          expected_delivery: string | null;
+          status: PurchaseOrderStatus;
+          total_amount: number | null;
+          notes: string | null;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          po_number: string;
+          supplier_id?: string | null;
+          order_date?: string;
+          expected_delivery?: string | null;
+          status?: PurchaseOrderStatus;
+          total_amount?: number | null;
+          notes?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['purchase_orders']['Insert']>;
+        Relationships: [];
+      };
+      purchase_order_items: {
+        Row: {
+          id: string;
+          po_id: string;
+          product_id: string;
+          quantity: number;
+          unit_price: number;
+          total_price: number;
+        };
+        Insert: {
+          id?: string;
+          po_id: string;
+          product_id: string;
+          quantity: number;
+          unit_price: number;
+        };
+        Update: Partial<Database['v2']['Tables']['purchase_order_items']['Insert']>;
+        Relationships: [];
+      };
+      sales_orders: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          order_number: string;
+          customer_name: string;
+          customer_email: string | null;
+          order_date: string;
+          status: SalesOrderStatus;
+          total_amount: number | null;
+          notes: string | null;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          order_number: string;
+          customer_name: string;
+          customer_email?: string | null;
+          order_date?: string;
+          status?: SalesOrderStatus;
+          total_amount?: number | null;
+          notes?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['sales_orders']['Insert']>;
+        Relationships: [];
+      };
+      sales_order_items: {
+        Row: {
+          id: string;
+          so_id: string;
+          product_id: string;
+          quantity: number;
+          unit_price: number;
+          total_price: number;
+        };
+        Insert: {
+          id?: string;
+          so_id: string;
+          product_id: string;
+          quantity: number;
+          unit_price: number;
+        };
+        Update: Partial<Database['v2']['Tables']['sales_order_items']['Insert']>;
+        Relationships: [];
+      };
+      stock_movements: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          product_id: string;
+          quantity_change: number;
+          previous_quantity: number;
+          new_quantity: number;
+          movement_type: StockMovementType;
+          reference_id: string | null;
+          reference_type: StockMovementReferenceType | null;
+          notes: string | null;
+          created_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          product_id: string;
+          quantity_change: number;
+          /** Set by the apply_stock_movement trigger; safe to omit. */
+          previous_quantity?: number;
+          /** Set by the apply_stock_movement trigger; safe to omit. */
+          new_quantity?: number;
+          movement_type: StockMovementType;
+          reference_id?: string | null;
+          reference_type?: StockMovementReferenceType | null;
+          notes?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['stock_movements']['Insert']>;
+        Relationships: [];
+      };
+      notifications: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          user_id: string | null;
+          title: string;
+          message: string;
+          type: NotificationType;
+          read_at: string | null;
+          metadata: Json | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          user_id?: string | null;
+          title: string;
+          message: string;
+          type?: NotificationType;
+          read_at?: string | null;
+          metadata?: Json | null;
+          created_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['notifications']['Insert']>;
+        Relationships: [];
+      };
     };
     Views: {
       profile_with_permissions: {
