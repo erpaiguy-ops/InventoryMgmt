@@ -4,7 +4,16 @@ import {
   type ModuleName,
   type PermissionAction,
 } from '@inventory-mgmt/shared-types';
-import { Contact, LayoutDashboard, Package, Settings, User, Users } from 'lucide-react';
+import {
+  CheckSquare,
+  Contact,
+  LayoutDashboard,
+  Package,
+  Settings,
+  User,
+  Users,
+  Warehouse,
+} from 'lucide-react';
 
 export interface NavItem {
   href: string;
@@ -26,6 +35,18 @@ export const navItems: NavItem[] = [
     label: 'Partners',
     icon: Contact,
     permission: { module: MODULES.PARTNERS, action: ACTIONS.VIEW },
+  },
+  {
+    href: '/dashboard/inventory',
+    label: 'Inventory',
+    icon: Warehouse,
+    permission: { module: MODULES.INVENTORY, action: ACTIONS.VIEW },
+  },
+  {
+    href: '/dashboard/approvals',
+    label: 'Approvals',
+    icon: CheckSquare,
+    permission: { module: MODULES.APPROVALS, action: ACTIONS.VIEW },
   },
   {
     href: '/dashboard/settings',

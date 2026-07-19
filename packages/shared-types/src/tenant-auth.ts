@@ -8,6 +8,8 @@
 export const MODULES = {
   ITEMS: 'items',
   PARTNERS: 'partners',
+  INVENTORY: 'inventory',
+  APPROVALS: 'approvals',
   SETTINGS: 'settings',
   USERS: 'users',
 } as const;

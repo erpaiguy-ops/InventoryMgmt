@@ -850,6 +850,446 @@ export interface Database {
         Update: Partial<Database['v2']['Tables']['item_suppliers']['Insert']>;
         Relationships: [];
       };
+      reason_codes: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          doc_type: string;
+          code: string;
+          label: string;
+          is_active: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          doc_type: string;
+          code: string;
+          label: string;
+          is_active?: boolean;
+          created_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['reason_codes']['Insert']>;
+        Relationships: [];
+      };
+      approval_workflows: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          doc_type: string;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          doc_type: string;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['approval_workflows']['Insert']>;
+        Relationships: [];
+      };
+      approval_workflow_steps: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          workflow_id: string;
+          step_no: number;
+          role_id: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          workflow_id: string;
+          step_no: number;
+          role_id: string;
+        };
+        Update: Partial<Database['v2']['Tables']['approval_workflow_steps']['Insert']>;
+        Relationships: [];
+      };
+      approval_requests: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          doc_type: string;
+          doc_id: string;
+          workflow_id: string;
+          current_step: number;
+          status: 'pending' | 'approved' | 'rejected';
+          reason_code_id: string | null;
+          reason_text: string | null;
+          requested_by: string | null;
+          created_at: string;
+          decided_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          doc_type: string;
+          doc_id: string;
+          workflow_id: string;
+          current_step?: number;
+          status?: 'pending' | 'approved' | 'rejected';
+          reason_code_id?: string | null;
+          reason_text?: string | null;
+          requested_by?: string | null;
+          created_at?: string;
+          decided_at?: string | null;
+        };
+        Update: Partial<Database['v2']['Tables']['approval_requests']['Insert']>;
+        Relationships: [];
+      };
+      approval_actions: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          request_id: string;
+          step_no: number;
+          actor_id: string | null;
+          decision: 'approve' | 'reject';
+          comment: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          request_id: string;
+          step_no: number;
+          actor_id?: string | null;
+          decision: 'approve' | 'reject';
+          comment?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['approval_actions']['Insert']>;
+        Relationships: [];
+      };
+      locations: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          warehouse_id: string;
+          code: string;
+          name: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          warehouse_id: string;
+          code: string;
+          name?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['locations']['Insert']>;
+        Relationships: [];
+      };
+      batches: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          item_id: string;
+          batch_no: string;
+          mfg_date: string | null;
+          expiry_date: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          item_id: string;
+          batch_no: string;
+          mfg_date?: string | null;
+          expiry_date?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['batches']['Insert']>;
+        Relationships: [];
+      };
+      serials: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          item_id: string;
+          serial_no: string;
+          status: 'in_stock' | 'issued' | 'scrapped';
+          warehouse_id: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          item_id: string;
+          serial_no: string;
+          status?: 'in_stock' | 'issued' | 'scrapped';
+          warehouse_id?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['serials']['Insert']>;
+        Relationships: [];
+      };
+      item_costs: {
+        Row: {
+          tenant_id: string;
+          item_id: string;
+          qty_on_hand: number;
+          avg_cost: number;
+          updated_at: string;
+        };
+        Insert: {
+          tenant_id: string;
+          item_id: string;
+          qty_on_hand?: number;
+          avg_cost?: number;
+          updated_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['item_costs']['Insert']>;
+        Relationships: [];
+      };
+      stock_ledger: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          item_id: string;
+          warehouse_id: string;
+          location_id: string | null;
+          batch_id: string | null;
+          qty: number;
+          unit_cost: number | null;
+          movement_type: string;
+          source_doc_type: string;
+          source_doc_id: string;
+          notes: string | null;
+          created_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          item_id: string;
+          warehouse_id: string;
+          location_id?: string | null;
+          batch_id?: string | null;
+          qty: number;
+          unit_cost?: number | null;
+          movement_type: string;
+          source_doc_type: string;
+          source_doc_id: string;
+          notes?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['stock_ledger']['Insert']>;
+        Relationships: [];
+      };
+      stock_balances: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          item_id: string;
+          warehouse_id: string;
+          batch_id: string | null;
+          qty_on_hand: number;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          item_id: string;
+          warehouse_id: string;
+          batch_id?: string | null;
+          qty_on_hand?: number;
+          updated_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['stock_balances']['Insert']>;
+        Relationships: [];
+      };
+      stock_transfers: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          doc_no: string;
+          from_warehouse_id: string;
+          to_warehouse_id: string;
+          status: 'draft' | 'in_transit' | 'received' | 'cancelled';
+          notes: string | null;
+          created_by: string | null;
+          dispatched_at: string | null;
+          received_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          doc_no: string;
+          from_warehouse_id: string;
+          to_warehouse_id: string;
+          status?: 'draft' | 'in_transit' | 'received' | 'cancelled';
+          notes?: string | null;
+          created_by?: string | null;
+          dispatched_at?: string | null;
+          received_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['stock_transfers']['Insert']>;
+        Relationships: [];
+      };
+      stock_transfer_lines: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          transfer_id: string;
+          item_id: string;
+          batch_id: string | null;
+          qty: number;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          transfer_id: string;
+          item_id: string;
+          batch_id?: string | null;
+          qty: number;
+        };
+        Update: Partial<Database['v2']['Tables']['stock_transfer_lines']['Insert']>;
+        Relationships: [];
+      };
+      stock_adjustments: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          doc_no: string;
+          warehouse_id: string;
+          status: 'draft' | 'pending_approval' | 'posted' | 'rejected';
+          is_opening: boolean;
+          notes: string | null;
+          created_by: string | null;
+          posted_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          doc_no: string;
+          warehouse_id: string;
+          status?: 'draft' | 'pending_approval' | 'posted' | 'rejected';
+          is_opening?: boolean;
+          notes?: string | null;
+          created_by?: string | null;
+          posted_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['stock_adjustments']['Insert']>;
+        Relationships: [];
+      };
+      stock_adjustment_lines: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          adjustment_id: string;
+          item_id: string;
+          batch_no: string | null;
+          expiry_date: string | null;
+          qty_change: number;
+          unit_cost: number | null;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          adjustment_id: string;
+          item_id: string;
+          batch_no?: string | null;
+          expiry_date?: string | null;
+          qty_change: number;
+          unit_cost?: number | null;
+        };
+        Update: Partial<Database['v2']['Tables']['stock_adjustment_lines']['Insert']>;
+        Relationships: [];
+      };
+      stock_audits: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          doc_no: string;
+          warehouse_id: string;
+          status: 'counting' | 'pending_approval' | 'posted' | 'rejected';
+          notes: string | null;
+          created_by: string | null;
+          posted_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          doc_no: string;
+          warehouse_id: string;
+          status?: 'counting' | 'pending_approval' | 'posted' | 'rejected';
+          notes?: string | null;
+          created_by?: string | null;
+          posted_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['stock_audits']['Insert']>;
+        Relationships: [];
+      };
+      stock_audit_lines: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          audit_id: string;
+          item_id: string;
+          batch_id: string | null;
+          system_qty: number;
+          counted_qty: number | null;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          audit_id: string;
+          item_id: string;
+          batch_id?: string | null;
+          system_qty?: number;
+          counted_qty?: number | null;
+        };
+        Update: Partial<Database['v2']['Tables']['stock_audit_lines']['Insert']>;
+        Relationships: [];
+      };
+      reorder_rules: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          item_id: string;
+          warehouse_id: string;
+          min_qty: number;
+          reorder_qty: number;
+          preferred_supplier_id: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          item_id: string;
+          warehouse_id: string;
+          min_qty?: number;
+          reorder_qty?: number;
+          preferred_supplier_id?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['reorder_rules']['Insert']>;
+        Relationships: [];
+      };
     };
     Views: {
       profile_with_permissions: {
@@ -875,6 +1315,22 @@ export interface Database {
       next_doc_number: {
         Args: { p_tenant_id: string; p_doc_type: string };
         Returns: string;
+      };
+      post_stock_adjustment: {
+        Args: { p_tenant_id: string; p_doc_id: string };
+        Returns: undefined;
+      };
+      post_stock_audit: {
+        Args: { p_tenant_id: string; p_doc_id: string };
+        Returns: undefined;
+      };
+      post_stock_transfer_dispatch: {
+        Args: { p_tenant_id: string; p_doc_id: string };
+        Returns: undefined;
+      };
+      post_stock_transfer_receive: {
+        Args: { p_tenant_id: string; p_doc_id: string };
+        Returns: undefined;
       };
     };
     Enums: Record<string, never>;

@@ -9,8 +9,10 @@ import { TransformInterceptor } from './common/interceptors/transform.intercepto
 import { SupabaseModule } from './common/supabase/supabase.module';
 import configuration from './config/configuration';
 import { envValidationSchema } from './config/validation';
+import { ApprovalsModule } from './modules/approvals/approvals.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { HealthModule } from './modules/health/health.module';
+import { InventoryModule } from './modules/inventory/inventory.module';
 import { ItemsModule } from './modules/items/items.module';
 import { OwnerModule } from './modules/owner/owner.module';
 import { PartnersModule } from './modules/partners/partners.module';
@@ -34,6 +36,8 @@ import { UsersModule } from './modules/users/users.module';
     SettingsModule,
     ItemsModule,
     PartnersModule,
+    ApprovalsModule,
+    InventoryModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: AllExceptionsFilter },
