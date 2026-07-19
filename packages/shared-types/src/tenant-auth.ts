@@ -6,6 +6,9 @@
  */
 
 export const MODULES = {
+  ITEMS: 'items',
+  PARTNERS: 'partners',
+  SETTINGS: 'settings',
   USERS: 'users',
 } as const;
 

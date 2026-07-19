@@ -108,9 +108,14 @@ export class SupabaseService {
    * a known limitation, not a loosening of the safety callers actually get
    * — T is still constrained to TenantScopedTableName at the call site.
    */
-  selectTenant<T extends TenantScopedTableName>(tenantId: string, table: T, columns = '*') {
+  selectTenant<T extends TenantScopedTableName>(
+    tenantId: string,
+    table: T,
+    columns = '*',
+    options?: { count?: 'exact' | 'planned' | 'estimated'; head?: boolean },
+  ) {
     const untypedClient = this.adminClient as unknown as SupabaseClient;
-    return untypedClient.from(table).select(columns).eq('tenant_id', tenantId);
+    return untypedClient.from(table).select(columns, options).eq('tenant_id', tenantId);
   }
 
   /**
@@ -123,10 +128,13 @@ export class SupabaseService {
   insertTenant<T extends TenantScopedTableName>(
     tenantId: string,
     table: T,
-    row: Record<string, unknown>,
+    row: Record<string, unknown> | Record<string, unknown>[],
   ) {
     const untypedClient = this.adminClient as unknown as SupabaseClient;
-    return untypedClient.from(table).insert({ ...row, tenant_id: tenantId });
+    const stamped = Array.isArray(row)
+      ? row.map((r) => ({ ...r, tenant_id: tenantId }))
+      : { ...row, tenant_id: tenantId };
+    return untypedClient.from(table).insert(stamped);
   }
 
   /** Tenant-scoped update — filters by tenant_id AND id, so a caller can never accidentally patch another tenant's row even by guessing an id. */
@@ -144,6 +152,27 @@ export class SupabaseService {
   deleteTenant<T extends TenantScopedTableName>(tenantId: string, table: T, id: string) {
     const untypedClient = this.adminClient as unknown as SupabaseClient;
     return untypedClient.from(table).delete().eq('tenant_id', tenantId).eq('id', id);
+  }
+
+  /** Tenant-scoped delete by an arbitrary column (e.g. all item_barcodes for one item_id) — same tenant_id guarantee as deleteTenant, for child tables replaced as a set. */
+  deleteTenantWhere<T extends TenantScopedTableName>(
+    tenantId: string,
+    table: T,
+    column: string,
+    value: string,
+  ) {
+    const untypedClient = this.adminClient as unknown as SupabaseClient;
+    return untypedClient.from(table).delete().eq('tenant_id', tenantId).eq(column, value);
+  }
+
+  /** For one-row-per-tenant tables keyed by tenant_id itself (e.g. org_settings): the tenant_id filter IS the row identity, so no id filter exists or is needed. */
+  updateTenantSingleton<T extends TenantScopedTableName>(
+    tenantId: string,
+    table: T,
+    patch: Record<string, unknown>,
+  ) {
+    const untypedClient = this.adminClient as unknown as SupabaseClient;
+    return untypedClient.from(table).update(patch).eq('tenant_id', tenantId);
   }
 
   async uploadFile(

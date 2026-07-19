@@ -11,13 +11,12 @@ import configuration from './config/configuration';
 import { envValidationSchema } from './config/validation';
 import { AuthModule } from './modules/auth/auth.module';
 import { HealthModule } from './modules/health/health.module';
+import { ItemsModule } from './modules/items/items.module';
 import { OwnerModule } from './modules/owner/owner.module';
+import { PartnersModule } from './modules/partners/partners.module';
+import { SettingsModule } from './modules/settings/settings.module';
 import { UsersModule } from './modules/users/users.module';
 
-// Products/Inventory/Suppliers/PurchaseOrders/SalesOrders/Reports are
-// deliberately unregistered on this branch (v2 Phase 1): their v1-model
-// tables and code don't exist in the v2 schema yet — they're rebuilt
-// tenant-scoped in Phase 3. Full working versions remain on `main`.
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -32,6 +31,9 @@ import { UsersModule } from './modules/users/users.module';
     AuthModule,
     UsersModule,
     OwnerModule,
+    SettingsModule,
+    ItemsModule,
+    PartnersModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: AllExceptionsFilter },

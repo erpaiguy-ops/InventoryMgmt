@@ -382,6 +382,474 @@ export interface Database {
         Update: Partial<Database['v2']['Tables']['profiles']['Insert']>;
         Relationships: [];
       };
+      org_settings: {
+        Row: {
+          tenant_id: string;
+          currency: string;
+          fiscal_year_start_month: number;
+          document_footer: string | null;
+          logo_path: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          tenant_id: string;
+          currency?: string;
+          fiscal_year_start_month?: number;
+          document_footer?: string | null;
+          logo_path?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['org_settings']['Insert']>;
+        Relationships: [];
+      };
+      numbering_series: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          doc_type: string;
+          prefix: string;
+          next_number: number;
+          padding: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          doc_type: string;
+          prefix: string;
+          next_number?: number;
+          padding?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['numbering_series']['Insert']>;
+        Relationships: [];
+      };
+      taxes: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          name: string;
+          rate: number;
+          is_inclusive: boolean;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          name: string;
+          rate: number;
+          is_inclusive?: boolean;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['taxes']['Insert']>;
+        Relationships: [];
+      };
+      uoms: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          code: string;
+          name: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          code: string;
+          name: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['uoms']['Insert']>;
+        Relationships: [];
+      };
+      warehouses: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          code: string;
+          name: string;
+          address: string | null;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          code: string;
+          name: string;
+          address?: string | null;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['warehouses']['Insert']>;
+        Relationships: [];
+      };
+      item_categories: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          parent_id: string | null;
+          name: string;
+          attribute_schema: Json;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          parent_id?: string | null;
+          name: string;
+          attribute_schema?: Json;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['item_categories']['Insert']>;
+        Relationships: [];
+      };
+      brands: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          name: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          name: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['brands']['Insert']>;
+        Relationships: [];
+      };
+      items: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          sku: string;
+          name: string;
+          description: string | null;
+          item_type: 'stocked' | 'service';
+          category_id: string | null;
+          brand_id: string | null;
+          parent_item_id: string | null;
+          base_uom_id: string;
+          purchase_uom_id: string | null;
+          sales_uom_id: string | null;
+          tax_id: string | null;
+          tracking: 'none' | 'batch' | 'serial';
+          track_expiry: boolean;
+          attributes: Json;
+          standard_cost: number | null;
+          standard_price: number | null;
+          status: 'draft' | 'active' | 'discontinued';
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          sku: string;
+          name: string;
+          description?: string | null;
+          item_type?: 'stocked' | 'service';
+          category_id?: string | null;
+          brand_id?: string | null;
+          parent_item_id?: string | null;
+          base_uom_id: string;
+          purchase_uom_id?: string | null;
+          sales_uom_id?: string | null;
+          tax_id?: string | null;
+          tracking?: 'none' | 'batch' | 'serial';
+          track_expiry?: boolean;
+          attributes?: Json;
+          standard_cost?: number | null;
+          standard_price?: number | null;
+          status?: 'draft' | 'active' | 'discontinued';
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['items']['Insert']>;
+        Relationships: [];
+      };
+      item_uoms: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          item_id: string;
+          uom_id: string;
+          factor_to_base: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          item_id: string;
+          uom_id: string;
+          factor_to_base: number;
+          created_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['item_uoms']['Insert']>;
+        Relationships: [];
+      };
+      item_barcodes: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          item_id: string;
+          barcode: string;
+          uom_id: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          item_id: string;
+          barcode: string;
+          uom_id?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['item_barcodes']['Insert']>;
+        Relationships: [];
+      };
+      price_lists: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          name: string;
+          list_type: 'sales' | 'purchase';
+          currency: string;
+          is_default: boolean;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          name: string;
+          list_type: 'sales' | 'purchase';
+          currency?: string;
+          is_default?: boolean;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['price_lists']['Insert']>;
+        Relationships: [];
+      };
+      price_list_items: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          price_list_id: string;
+          item_id: string;
+          uom_id: string | null;
+          min_qty: number;
+          unit_price: number;
+          valid_from: string | null;
+          valid_to: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          price_list_id: string;
+          item_id: string;
+          uom_id?: string | null;
+          min_qty?: number;
+          unit_price: number;
+          valid_from?: string | null;
+          valid_to?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['price_list_items']['Insert']>;
+        Relationships: [];
+      };
+      payment_terms: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          name: string;
+          net_days: number;
+          early_pay_discount_pct: number | null;
+          early_pay_within_days: number | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          name: string;
+          net_days?: number;
+          early_pay_discount_pct?: number | null;
+          early_pay_within_days?: number | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['payment_terms']['Insert']>;
+        Relationships: [];
+      };
+      partner_groups: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          name: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          name: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['partner_groups']['Insert']>;
+        Relationships: [];
+      };
+      partners: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          code: string | null;
+          name: string;
+          is_customer: boolean;
+          is_supplier: boolean;
+          tax_id_number: string | null;
+          email: string | null;
+          phone: string | null;
+          currency: string | null;
+          payment_term_id: string | null;
+          credit_limit: number | null;
+          price_list_id: string | null;
+          group_id: string | null;
+          status: 'active' | 'on_hold' | 'archived';
+          notes: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          code?: string | null;
+          name: string;
+          is_customer?: boolean;
+          is_supplier?: boolean;
+          tax_id_number?: string | null;
+          email?: string | null;
+          phone?: string | null;
+          currency?: string | null;
+          payment_term_id?: string | null;
+          credit_limit?: number | null;
+          price_list_id?: string | null;
+          group_id?: string | null;
+          status?: 'active' | 'on_hold' | 'archived';
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['partners']['Insert']>;
+        Relationships: [];
+      };
+      partner_contacts: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          partner_id: string;
+          name: string;
+          designation: string | null;
+          email: string | null;
+          phone: string | null;
+          is_primary: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          partner_id: string;
+          name: string;
+          designation?: string | null;
+          email?: string | null;
+          phone?: string | null;
+          is_primary?: boolean;
+          created_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['partner_contacts']['Insert']>;
+        Relationships: [];
+      };
+      partner_addresses: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          partner_id: string;
+          address_type: 'billing' | 'shipping';
+          line1: string;
+          line2: string | null;
+          city: string | null;
+          state: string | null;
+          country: string | null;
+          postal_code: string | null;
+          is_default: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          partner_id: string;
+          address_type: 'billing' | 'shipping';
+          line1: string;
+          line2?: string | null;
+          city?: string | null;
+          state?: string | null;
+          country?: string | null;
+          postal_code?: string | null;
+          is_default?: boolean;
+          created_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['partner_addresses']['Insert']>;
+        Relationships: [];
+      };
+      item_suppliers: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          item_id: string;
+          partner_id: string;
+          supplier_sku: string | null;
+          lead_time_days: number | null;
+          last_cost: number | null;
+          moq: number | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          item_id: string;
+          partner_id: string;
+          supplier_sku?: string | null;
+          lead_time_days?: number | null;
+          last_cost?: number | null;
+          moq?: number | null;
+          created_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['item_suppliers']['Insert']>;
+        Relationships: [];
+      };
     };
     Views: {
       profile_with_permissions: {
@@ -402,6 +870,10 @@ export interface Database {
     Functions: {
       create_organization_with_defaults: {
         Args: { org_name: string; org_slug: string };
+        Returns: string;
+      };
+      next_doc_number: {
+        Args: { p_tenant_id: string; p_doc_type: string };
         Returns: string;
       };
     };
