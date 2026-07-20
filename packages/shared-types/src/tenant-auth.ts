@@ -11,6 +11,8 @@ export const MODULES = {
   INVENTORY: 'inventory',
   PROCUREMENT: 'procurement',
   SALES: 'sales',
+  FINANCIALS: 'financials',
+  FIXED_ASSETS: 'fixed_assets',
   APPROVALS: 'approvals',
   SETTINGS: 'settings',
   USERS: 'users',

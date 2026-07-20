@@ -76,6 +76,7 @@ interface InvoiceRow {
   subtotal: number;
   tax_total: number;
   total: number;
+  amount_paid: number;
   notes: string | null;
   created_at: string;
 }
@@ -505,6 +506,7 @@ export class SalesService implements OnModuleInit {
       subtotal: row.subtotal,
       taxTotal: row.tax_total,
       total: row.total,
+      amountPaid: row.amount_paid,
       notes: row.notes,
       createdAt: row.created_at,
       lines: (lines ?? []).map((line) => ({
@@ -596,6 +598,32 @@ export class SalesService implements OnModuleInit {
     if (lineError) {
       await this.supabaseService.deleteTenant(tenantId, 'sales_invoices', invoice.id);
       throw new BadRequestException(lineError.message);
+    }
+
+    const invoiceJournalLines: Record<string, unknown>[] = [
+      { account_role: 'ar', debit: subtotal + taxTotal, partner_id: so.customerId },
+      { account_role: 'revenue', credit: subtotal, partner_id: so.customerId },
+    ];
+    if (taxTotal > 0) {
+      invoiceJournalLines.push({
+        account_role: 'tax_payable',
+        credit: taxTotal,
+        partner_id: so.customerId,
+      });
+    }
+    try {
+      await this.supabaseService.callTransaction('post_journal_entry', {
+        p_tenant_id: tenantId,
+        p_entry_date: dto.invoiceDate ?? new Date().toISOString().slice(0, 10),
+        p_source_doc_type: 'sales_invoice',
+        p_source_doc_id: invoice.id,
+        p_memo: `Invoice ${invoice.doc_no} for SO ${so.docNo}`,
+        p_lines: invoiceJournalLines,
+        p_created_by: createdBy,
+      });
+    } catch (e) {
+      await this.supabaseService.deleteTenant(tenantId, 'sales_invoices', invoice.id);
+      throw e;
     }
 
     // Advance invoiced counters (the DB check constraint backstops the cap).

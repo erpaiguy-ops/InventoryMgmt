@@ -83,6 +83,7 @@ export interface PurchaseBill {
   dueDate: string | null;
   status: 'open' | 'paid' | 'cancelled';
   total: number;
+  amountPaid: number;
   notes: string | null;
   createdAt: string;
   lines: PurchaseBillLine[];

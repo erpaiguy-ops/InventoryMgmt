@@ -5,6 +5,7 @@ import {
   type PermissionAction,
 } from '@inventory-mgmt/shared-types';
 import {
+  Building,
   CheckSquare,
   Contact,
   LayoutDashboard,
@@ -15,6 +16,7 @@ import {
   User,
   Users,
   Warehouse,
+  Wallet,
 } from 'lucide-react';
 
 export interface NavItem {
@@ -55,6 +57,18 @@ export const navItems: NavItem[] = [
     label: 'Sales',
     icon: ShoppingBag,
     permission: { module: MODULES.SALES, action: ACTIONS.VIEW },
+  },
+  {
+    href: '/dashboard/financials',
+    label: 'Financials',
+    icon: Wallet,
+    permission: { module: MODULES.FINANCIALS, action: ACTIONS.VIEW },
+  },
+  {
+    href: '/dashboard/fixed-assets',
+    label: 'Fixed Assets',
+    icon: Building,
+    permission: { module: MODULES.FIXED_ASSETS, action: ACTIONS.VIEW },
   },
   {
     href: '/dashboard/approvals',

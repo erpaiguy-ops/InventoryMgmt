@@ -7,3 +7,5 @@ export * from './master-data';
 export * from './stock';
 export * from './procurement';
 export * from './sales';
+export * from './financials';
+export * from './fixed-assets';

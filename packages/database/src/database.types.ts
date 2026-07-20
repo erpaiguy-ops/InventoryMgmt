@@ -1427,6 +1427,7 @@ export interface Database {
           due_date: string | null;
           status: 'open' | 'paid' | 'cancelled';
           total: number;
+          amount_paid: number;
           notes: string | null;
           created_by: string | null;
           created_at: string;
@@ -1443,6 +1444,7 @@ export interface Database {
           due_date?: string | null;
           status?: 'open' | 'paid' | 'cancelled';
           total?: number;
+          amount_paid?: number;
           notes?: string | null;
           created_by?: string | null;
           created_at?: string;
@@ -1700,6 +1702,7 @@ export interface Database {
           subtotal: number;
           tax_total: number;
           total: number;
+          amount_paid: number;
           notes: string | null;
           created_by: string | null;
           created_at: string;
@@ -1717,6 +1720,7 @@ export interface Database {
           subtotal?: number;
           tax_total?: number;
           total?: number;
+          amount_paid?: number;
           notes?: string | null;
           created_by?: string | null;
           created_at?: string;
@@ -1802,6 +1806,444 @@ export interface Database {
         Update: Partial<Database['v2']['Tables']['sales_return_lines']['Insert']>;
         Relationships: [];
       };
+      accounts: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          code: string;
+          name: string;
+          account_type: 'asset' | 'liability' | 'equity' | 'revenue' | 'expense';
+          normal_balance: 'debit' | 'credit';
+          parent_account_id: string | null;
+          system_role: string | null;
+          is_system: boolean;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          code: string;
+          name: string;
+          account_type: 'asset' | 'liability' | 'equity' | 'revenue' | 'expense';
+          normal_balance: 'debit' | 'credit';
+          parent_account_id?: string | null;
+          system_role?: string | null;
+          is_system?: boolean;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['accounts']['Insert']>;
+        Relationships: [];
+      };
+      cost_centers: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          code: string;
+          name: string;
+          center_type: 'general' | 'vehicle' | 'department' | 'project';
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          code: string;
+          name: string;
+          center_type?: 'general' | 'vehicle' | 'department' | 'project';
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['cost_centers']['Insert']>;
+        Relationships: [];
+      };
+      fiscal_periods: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          period_start: string;
+          period_end: string;
+          status: 'open' | 'closed';
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          period_start: string;
+          period_end: string;
+          status?: 'open' | 'closed';
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['fiscal_periods']['Insert']>;
+        Relationships: [];
+      };
+      journal_entries: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          entry_no: string;
+          entry_date: string;
+          source_doc_type: string;
+          source_doc_id: string | null;
+          memo: string | null;
+          created_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          entry_no: string;
+          entry_date?: string;
+          source_doc_type: string;
+          source_doc_id?: string | null;
+          memo?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['journal_entries']['Insert']>;
+        Relationships: [];
+      };
+      journal_entry_lines: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          entry_id: string;
+          account_id: string;
+          cost_center_id: string | null;
+          partner_id: string | null;
+          debit: number;
+          credit: number;
+          description: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          entry_id: string;
+          account_id: string;
+          cost_center_id?: string | null;
+          partner_id?: string | null;
+          debit?: number;
+          credit?: number;
+          description?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['journal_entry_lines']['Insert']>;
+        Relationships: [];
+      };
+      bank_accounts: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          name: string;
+          account_number: string | null;
+          account_id: string;
+          opening_balance: number;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          name: string;
+          account_number?: string | null;
+          account_id: string;
+          opening_balance?: number;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['bank_accounts']['Insert']>;
+        Relationships: [];
+      };
+      payment_methods: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          name: string;
+          method_type: 'cash' | 'bank' | 'card' | 'cheque' | 'other';
+          bank_account_id: string | null;
+          is_active: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          name: string;
+          method_type: 'cash' | 'bank' | 'card' | 'cheque' | 'other';
+          bank_account_id?: string | null;
+          is_active?: boolean;
+          created_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['payment_methods']['Insert']>;
+        Relationships: [];
+      };
+      bank_transactions: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          bank_account_id: string;
+          txn_date: string;
+          description: string | null;
+          amount: number;
+          source: 'manual' | 'receipt' | 'payment';
+          source_doc_type: string | null;
+          source_doc_id: string | null;
+          is_reconciled: boolean;
+          reconciled_at: string | null;
+          created_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          bank_account_id: string;
+          txn_date?: string;
+          description?: string | null;
+          amount: number;
+          source?: 'manual' | 'receipt' | 'payment';
+          source_doc_type?: string | null;
+          source_doc_id?: string | null;
+          is_reconciled?: boolean;
+          reconciled_at?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['bank_transactions']['Insert']>;
+        Relationships: [];
+      };
+      ar_receipts: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          doc_no: string;
+          customer_id: string;
+          receipt_date: string;
+          amount: number;
+          payment_method_id: string | null;
+          notes: string | null;
+          created_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          doc_no: string;
+          customer_id: string;
+          receipt_date?: string;
+          amount: number;
+          payment_method_id?: string | null;
+          notes?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['ar_receipts']['Insert']>;
+        Relationships: [];
+      };
+      ar_receipt_allocations: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          receipt_id: string;
+          invoice_id: string;
+          amount: number;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          receipt_id: string;
+          invoice_id: string;
+          amount: number;
+        };
+        Update: Partial<Database['v2']['Tables']['ar_receipt_allocations']['Insert']>;
+        Relationships: [];
+      };
+      ap_payments: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          doc_no: string;
+          supplier_id: string;
+          payment_date: string;
+          amount: number;
+          payment_method_id: string | null;
+          notes: string | null;
+          created_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          doc_no: string;
+          supplier_id: string;
+          payment_date?: string;
+          amount: number;
+          payment_method_id?: string | null;
+          notes?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['ap_payments']['Insert']>;
+        Relationships: [];
+      };
+      ap_payment_allocations: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          payment_id: string;
+          bill_id: string;
+          amount: number;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          payment_id: string;
+          bill_id: string;
+          amount: number;
+        };
+        Update: Partial<Database['v2']['Tables']['ap_payment_allocations']['Insert']>;
+        Relationships: [];
+      };
+      asset_categories: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          name: string;
+          default_method: 'straight_line' | 'declining_balance';
+          default_life_months: number;
+          default_salvage_pct: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          name: string;
+          default_method?: 'straight_line' | 'declining_balance';
+          default_life_months: number;
+          default_salvage_pct?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['asset_categories']['Insert']>;
+        Relationships: [];
+      };
+      assets: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          asset_no: string;
+          name: string;
+          category_id: string;
+          acquisition_date: string;
+          acquisition_cost: number;
+          salvage_value: number;
+          useful_life_months: number;
+          method: 'straight_line' | 'declining_balance';
+          status: 'active' | 'fully_depreciated' | 'disposed';
+          accumulated_depreciation: number;
+          cost_center_id: string | null;
+          purchase_bill_id: string | null;
+          notes: string | null;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          asset_no: string;
+          name: string;
+          category_id: string;
+          acquisition_date?: string;
+          acquisition_cost: number;
+          salvage_value?: number;
+          useful_life_months: number;
+          method: 'straight_line' | 'declining_balance';
+          status?: 'active' | 'fully_depreciated' | 'disposed';
+          accumulated_depreciation?: number;
+          cost_center_id?: string | null;
+          purchase_bill_id?: string | null;
+          notes?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['assets']['Insert']>;
+        Relationships: [];
+      };
+      depreciation_runs: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          run_date: string;
+          total_amount: number;
+          created_by: string | null;
+          posted_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          run_date: string;
+          total_amount?: number;
+          created_by?: string | null;
+          posted_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['depreciation_runs']['Insert']>;
+        Relationships: [];
+      };
+      depreciation_run_lines: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          run_id: string;
+          asset_id: string;
+          amount: number;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          run_id: string;
+          asset_id: string;
+          amount: number;
+        };
+        Update: Partial<Database['v2']['Tables']['depreciation_run_lines']['Insert']>;
+        Relationships: [];
+      };
+      asset_disposals: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          asset_id: string;
+          disposal_date: string;
+          proceeds: number;
+          gain_loss: number;
+          notes: string | null;
+          created_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          asset_id: string;
+          disposal_date?: string;
+          proceeds?: number;
+          gain_loss: number;
+          notes?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['asset_disposals']['Insert']>;
+        Relationships: [];
+      };
     };
     Views: {
       profile_with_permissions: {
@@ -1863,6 +2305,82 @@ export interface Database {
       post_sales_return: {
         Args: { p_tenant_id: string; p_doc_id: string };
         Returns: undefined;
+      };
+      post_journal_entry: {
+        Args: {
+          p_tenant_id: string;
+          p_entry_date: string;
+          p_source_doc_type: string;
+          p_source_doc_id: string | null;
+          p_memo: string | null;
+          p_lines: Json;
+          p_created_by?: string | null;
+        };
+        Returns: string;
+      };
+      close_fiscal_period: {
+        Args: { p_tenant_id: string; p_period_start: string };
+        Returns: undefined;
+      };
+      post_ar_receipt: {
+        Args: { p_tenant_id: string; p_receipt_id: string; p_deposit_account_id: string };
+        Returns: undefined;
+      };
+      post_ap_payment: {
+        Args: { p_tenant_id: string; p_payment_id: string; p_source_account_id: string };
+        Returns: undefined;
+      };
+      register_asset: {
+        Args: {
+          p_tenant_id: string;
+          p_asset_id: string;
+          p_funding_account_id: string;
+          p_created_by?: string | null;
+        };
+        Returns: string;
+      };
+      run_depreciation: {
+        Args: { p_tenant_id: string; p_run_date: string; p_created_by?: string | null };
+        Returns: string;
+      };
+      dispose_asset: {
+        Args: {
+          p_tenant_id: string;
+          p_asset_id: string;
+          p_disposal_date: string;
+          p_proceeds: number;
+          p_deposit_account_id: string;
+          p_notes: string | null;
+          p_created_by?: string | null;
+        };
+        Returns: string;
+      };
+      report_balance_sheet: {
+        Args: { p_tenant_id: string; p_as_of: string };
+        Returns: {
+          account_id: string;
+          code: string;
+          name: string;
+          account_type: 'asset' | 'liability' | 'equity' | 'revenue' | 'expense';
+          normal_balance: 'debit' | 'credit';
+          balance: number;
+        }[];
+      };
+      report_profit_and_loss: {
+        Args: {
+          p_tenant_id: string;
+          p_from: string;
+          p_to: string;
+          p_cost_center_id?: string | null;
+        };
+        Returns: {
+          account_id: string;
+          code: string;
+          name: string;
+          account_type: 'asset' | 'liability' | 'equity' | 'revenue' | 'expense';
+          normal_balance: 'debit' | 'credit';
+          balance: number;
+        }[];
       };
     };
     Enums: Record<string, never>;

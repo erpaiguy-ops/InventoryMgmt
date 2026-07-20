@@ -11,6 +11,8 @@ import configuration from './config/configuration';
 import { envValidationSchema } from './config/validation';
 import { ApprovalsModule } from './modules/approvals/approvals.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { FinancialsModule } from './modules/financials/financials.module';
+import { FixedAssetsModule } from './modules/fixed-assets/fixed-assets.module';
 import { HealthModule } from './modules/health/health.module';
 import { InventoryModule } from './modules/inventory/inventory.module';
 import { ItemsModule } from './modules/items/items.module';
@@ -42,6 +44,8 @@ import { UsersModule } from './modules/users/users.module';
     InventoryModule,
     ProcurementModule,
     SalesModule,
+    FinancialsModule,
+    FixedAssetsModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: AllExceptionsFilter },

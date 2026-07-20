@@ -82,6 +82,7 @@ export interface SalesInvoice {
   subtotal: number;
   taxTotal: number;
   total: number;
+  amountPaid: number;
   notes: string | null;
   createdAt: string;
   lines: SalesInvoiceLine[];

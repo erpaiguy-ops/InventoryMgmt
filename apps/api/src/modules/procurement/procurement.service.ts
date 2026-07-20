@@ -79,6 +79,7 @@ interface BillRow {
   due_date: string | null;
   status: 'open' | 'paid' | 'cancelled';
   total: number;
+  amount_paid: number;
   notes: string | null;
   created_at: string;
 }
@@ -482,6 +483,7 @@ export class ProcurementService implements OnModuleInit {
       dueDate: row.due_date,
       status: row.status,
       total: row.total,
+      amountPaid: row.amount_paid,
       notes: row.notes,
       createdAt: row.created_at,
       lines: (lines ?? []).map((line) => ({
@@ -558,6 +560,25 @@ export class ProcurementService implements OnModuleInit {
     if (lineError) {
       await this.supabaseService.deleteTenant(tenantId, 'purchase_bills', bill.id);
       throw new BadRequestException(lineError.message);
+    }
+
+    // Bill clears the goods-received-not-invoiced accrual into a real payable.
+    try {
+      await this.supabaseService.callTransaction('post_journal_entry', {
+        p_tenant_id: tenantId,
+        p_entry_date: dto.billDate ?? new Date().toISOString().slice(0, 10),
+        p_source_doc_type: 'purchase_bill',
+        p_source_doc_id: bill.id,
+        p_memo: `Bill ${bill.doc_no} for PO ${po.docNo}`,
+        p_lines: [
+          { account_role: 'grni', debit: total },
+          { account_role: 'ap', credit: total, partner_id: po.supplierId },
+        ],
+        p_created_by: createdBy,
+      });
+    } catch (e) {
+      await this.supabaseService.deleteTenant(tenantId, 'purchase_bills', bill.id);
+      throw e;
     }
 
     // Advance billed counters (the DB check constraint backstops the cap).
