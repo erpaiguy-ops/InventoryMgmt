@@ -17,6 +17,7 @@ export interface SoPayload {
 
 export interface DeliveryPayload {
   soId: string;
+  warehouseId?: string;
   notes?: string;
   lines: { soLineId: string; qty: number; batchId?: string }[];
 }

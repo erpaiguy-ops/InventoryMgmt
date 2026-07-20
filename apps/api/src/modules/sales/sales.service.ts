@@ -428,7 +428,7 @@ export class SalesService implements OnModuleInit {
       .insertTenant(tenantId, 'deliveries', {
         doc_no: docNo,
         so_id: dto.soId,
-        warehouse_id: so.warehouseId,
+        warehouse_id: dto.warehouseId ?? so.warehouseId,
         notes: dto.notes,
         created_by: createdBy,
       })

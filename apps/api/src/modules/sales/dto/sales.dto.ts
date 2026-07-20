@@ -68,6 +68,10 @@ export class CreateDeliveryDto {
   soId!: string;
 
   @IsOptional()
+  @IsUUID()
+  warehouseId?: string;
+
+  @IsOptional()
   @IsString()
   @MaxLength(1000)
   notes?: string;

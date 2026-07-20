@@ -18,6 +18,14 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   Table,
   TableBody,
@@ -35,6 +43,7 @@ import {
   useSalesOrder,
   useSubmitSo,
 } from '@/hooks/use-sales';
+import { useWarehouses } from '@/hooks/use-settings';
 
 const STATUS_VARIANT: Record<
   SalesOrderDoc['status'],
@@ -54,6 +63,7 @@ export default function SalesOrderDetailPage() {
 
   const { data: so, isLoading } = useSalesOrder(soId);
   const { data: deliveries } = useDeliveries(soId);
+  const { data: warehouses } = useWarehouses();
   const submitSo = useSubmitSo();
   const cancelSo = useCancelSo();
   const deliverGoods = useDeliverGoods();
@@ -65,6 +75,7 @@ export default function SalesOrderDetailPage() {
   const canUpdate = hasPermission(permissions, MODULES.SALES, ACTIONS.UPDATE);
 
   const [deliverOpen, setDeliverOpen] = useState(false);
+  const [deliverWarehouseId, setDeliverWarehouseId] = useState('');
   const [deliverQty, setDeliverQty] = useState<Record<string, string>>({});
   const [invoiceOpen, setInvoiceOpen] = useState(false);
   const [invoiceQty, setInvoiceQty] = useState<Record<string, string>>({});
@@ -84,6 +95,7 @@ export default function SalesOrderDetailPage() {
         deliverable.map((line) => [line.id, String(line.qty - line.qtyDelivered)]),
       ),
     );
+    setDeliverWarehouseId(so.warehouseId);
     setDeliverOpen(true);
   };
 
@@ -259,7 +271,25 @@ export default function SalesOrderDetailPage() {
           <DialogHeader>
             <DialogTitle>Deliver goods for {so.docNo}</DialogTitle>
           </DialogHeader>
-          <div className="space-y-2">
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <Label>Ship from warehouse</Label>
+              <Select value={deliverWarehouseId} onValueChange={setDeliverWarehouseId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Warehouse" />
+                </SelectTrigger>
+                <SelectContent>
+                  {(warehouses ?? []).map((warehouse) => (
+                    <SelectItem key={warehouse.id} value={warehouse.id}>
+                      {warehouse.code} — {warehouse.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-muted-foreground text-xs">
+                Defaults to the order&apos;s warehouse — switch if that location is short on stock.
+              </p>
+            </div>
             {deliverable.map((line) => (
               <div key={line.id} className="flex items-center gap-2">
                 <span className="flex-1 text-sm">
@@ -292,6 +322,7 @@ export default function SalesOrderDetailPage() {
                 deliverGoods.mutate(
                   {
                     soId,
+                    warehouseId: deliverWarehouseId || undefined,
                     lines: deliverable
                       .filter((line) => Number(deliverQty[line.id]) > 0)
                       .map((line) => ({ soLineId: line.id, qty: Number(deliverQty[line.id]) })),
