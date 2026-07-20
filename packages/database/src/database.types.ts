@@ -389,6 +389,7 @@ export interface Database {
           fiscal_year_start_month: number;
           document_footer: string | null;
           logo_path: string | null;
+          po_approval_min_total: number | null;
           created_at: string;
           updated_at: string;
         };
@@ -398,6 +399,7 @@ export interface Database {
           fiscal_year_start_month?: number;
           document_footer?: string | null;
           logo_path?: string | null;
+          po_approval_min_total?: number | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -1290,6 +1292,282 @@ export interface Database {
         Update: Partial<Database['v2']['Tables']['reorder_rules']['Insert']>;
         Relationships: [];
       };
+      purchase_orders: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          doc_no: string;
+          supplier_id: string;
+          warehouse_id: string;
+          order_date: string;
+          expected_date: string | null;
+          status:
+            'draft' | 'pending_approval' | 'confirmed' | 'received' | 'cancelled' | 'rejected';
+          subtotal: number;
+          tax_total: number;
+          total: number;
+          notes: string | null;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          doc_no: string;
+          supplier_id: string;
+          warehouse_id: string;
+          order_date?: string;
+          expected_date?: string | null;
+          status?:
+            'draft' | 'pending_approval' | 'confirmed' | 'received' | 'cancelled' | 'rejected';
+          subtotal?: number;
+          tax_total?: number;
+          total?: number;
+          notes?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['purchase_orders']['Insert']>;
+        Relationships: [];
+      };
+      purchase_order_lines: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          po_id: string;
+          item_id: string;
+          qty: number;
+          unit_price: number;
+          tax_id: string | null;
+          line_total: number;
+          qty_received: number;
+          qty_billed: number;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          po_id: string;
+          item_id: string;
+          qty: number;
+          unit_price: number;
+          tax_id?: string | null;
+          qty_received?: number;
+          qty_billed?: number;
+        };
+        Update: Partial<Database['v2']['Tables']['purchase_order_lines']['Insert']>;
+        Relationships: [];
+      };
+      goods_receipts: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          doc_no: string;
+          po_id: string;
+          warehouse_id: string;
+          status: 'draft' | 'posted';
+          notes: string | null;
+          created_by: string | null;
+          posted_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          doc_no: string;
+          po_id: string;
+          warehouse_id: string;
+          status?: 'draft' | 'posted';
+          notes?: string | null;
+          created_by?: string | null;
+          posted_at?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['goods_receipts']['Insert']>;
+        Relationships: [];
+      };
+      goods_receipt_lines: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          gr_id: string;
+          po_line_id: string;
+          item_id: string;
+          qty: number;
+          unit_cost: number;
+          batch_no: string | null;
+          expiry_date: string | null;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          gr_id: string;
+          po_line_id: string;
+          item_id: string;
+          qty: number;
+          unit_cost: number;
+          batch_no?: string | null;
+          expiry_date?: string | null;
+        };
+        Update: Partial<Database['v2']['Tables']['goods_receipt_lines']['Insert']>;
+        Relationships: [];
+      };
+      purchase_bills: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          doc_no: string;
+          po_id: string;
+          supplier_id: string;
+          supplier_bill_no: string | null;
+          bill_date: string;
+          due_date: string | null;
+          status: 'open' | 'paid' | 'cancelled';
+          total: number;
+          notes: string | null;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          doc_no: string;
+          po_id: string;
+          supplier_id: string;
+          supplier_bill_no?: string | null;
+          bill_date?: string;
+          due_date?: string | null;
+          status?: 'open' | 'paid' | 'cancelled';
+          total?: number;
+          notes?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['purchase_bills']['Insert']>;
+        Relationships: [];
+      };
+      purchase_bill_lines: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          bill_id: string;
+          po_line_id: string;
+          item_id: string;
+          qty: number;
+          unit_price: number;
+          line_total: number;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          bill_id: string;
+          po_line_id: string;
+          item_id: string;
+          qty: number;
+          unit_price: number;
+        };
+        Update: Partial<Database['v2']['Tables']['purchase_bill_lines']['Insert']>;
+        Relationships: [];
+      };
+      purchase_returns: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          doc_no: string;
+          supplier_id: string;
+          warehouse_id: string;
+          reason_code_id: string | null;
+          reason_text: string | null;
+          status: 'posted' | 'cancelled';
+          notes: string | null;
+          created_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          doc_no: string;
+          supplier_id: string;
+          warehouse_id: string;
+          reason_code_id?: string | null;
+          reason_text?: string | null;
+          status?: 'posted' | 'cancelled';
+          notes?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['purchase_returns']['Insert']>;
+        Relationships: [];
+      };
+      purchase_return_lines: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          return_id: string;
+          item_id: string;
+          batch_id: string | null;
+          qty: number;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          return_id: string;
+          item_id: string;
+          batch_id?: string | null;
+          qty: number;
+        };
+        Update: Partial<Database['v2']['Tables']['purchase_return_lines']['Insert']>;
+        Relationships: [];
+      };
+      landed_cost_vouchers: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          doc_no: string;
+          gr_id: string;
+          description: string;
+          amount: number;
+          status: 'draft' | 'posted';
+          created_by: string | null;
+          posted_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          doc_no: string;
+          gr_id: string;
+          description: string;
+          amount: number;
+          status?: 'draft' | 'posted';
+          created_by?: string | null;
+          posted_at?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['landed_cost_vouchers']['Insert']>;
+        Relationships: [];
+      };
+      landed_cost_allocations: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          voucher_id: string;
+          item_id: string;
+          amount: number;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          voucher_id: string;
+          item_id: string;
+          amount: number;
+        };
+        Update: Partial<Database['v2']['Tables']['landed_cost_allocations']['Insert']>;
+        Relationships: [];
+      };
     };
     Views: {
       profile_with_permissions: {
@@ -1329,6 +1607,18 @@ export interface Database {
         Returns: undefined;
       };
       post_stock_transfer_receive: {
+        Args: { p_tenant_id: string; p_doc_id: string };
+        Returns: undefined;
+      };
+      post_goods_receipt: {
+        Args: { p_tenant_id: string; p_doc_id: string };
+        Returns: undefined;
+      };
+      post_purchase_return: {
+        Args: { p_tenant_id: string; p_doc_id: string };
+        Returns: undefined;
+      };
+      post_landed_cost: {
         Args: { p_tenant_id: string; p_doc_id: string };
         Returns: undefined;
       };

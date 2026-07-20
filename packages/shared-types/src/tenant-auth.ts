@@ -9,6 +9,7 @@ export const MODULES = {
   ITEMS: 'items',
   PARTNERS: 'partners',
   INVENTORY: 'inventory',
+  PROCUREMENT: 'procurement',
   APPROVALS: 'approvals',
   SETTINGS: 'settings',
   USERS: 'users',

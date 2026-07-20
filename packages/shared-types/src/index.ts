@@ -5,3 +5,4 @@ export * from './orders';
 export * from './tenant-auth';
 export * from './master-data';
 export * from './stock';
+export * from './procurement';
