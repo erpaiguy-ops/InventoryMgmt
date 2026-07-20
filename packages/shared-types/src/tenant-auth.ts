@@ -13,6 +13,8 @@ export const MODULES = {
   SALES: 'sales',
   FINANCIALS: 'financials',
   FIXED_ASSETS: 'fixed_assets',
+  HRM: 'hrm',
+  FLEET: 'fleet',
   APPROVALS: 'approvals',
   SETTINGS: 'settings',
   USERS: 'users',

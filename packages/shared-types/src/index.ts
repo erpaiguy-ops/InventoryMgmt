@@ -9,3 +9,5 @@ export * from './procurement';
 export * from './sales';
 export * from './financials';
 export * from './fixed-assets';
+export * from './hrm';
+export * from './fleet';

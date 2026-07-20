@@ -13,7 +13,9 @@ import {
   Settings,
   ShoppingBag,
   ShoppingCart,
+  Truck,
   User,
+  UserCircle,
   Users,
   Warehouse,
   Wallet,
@@ -69,6 +71,18 @@ export const navItems: NavItem[] = [
     label: 'Fixed Assets',
     icon: Building,
     permission: { module: MODULES.FIXED_ASSETS, action: ACTIONS.VIEW },
+  },
+  {
+    href: '/dashboard/hrm',
+    label: 'HRM & Payroll',
+    icon: UserCircle,
+    permission: { module: MODULES.HRM, action: ACTIONS.VIEW },
+  },
+  {
+    href: '/dashboard/fleet',
+    label: 'Fleet',
+    icon: Truck,
+    permission: { module: MODULES.FLEET, action: ACTIONS.VIEW },
   },
   {
     href: '/dashboard/approvals',

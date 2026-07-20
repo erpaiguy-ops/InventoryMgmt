@@ -13,7 +13,9 @@ import { ApprovalsModule } from './modules/approvals/approvals.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { FinancialsModule } from './modules/financials/financials.module';
 import { FixedAssetsModule } from './modules/fixed-assets/fixed-assets.module';
+import { FleetModule } from './modules/fleet/fleet.module';
 import { HealthModule } from './modules/health/health.module';
+import { HrmModule } from './modules/hrm/hrm.module';
 import { InventoryModule } from './modules/inventory/inventory.module';
 import { ItemsModule } from './modules/items/items.module';
 import { OwnerModule } from './modules/owner/owner.module';
@@ -46,6 +48,8 @@ import { UsersModule } from './modules/users/users.module';
     SalesModule,
     FinancialsModule,
     FixedAssetsModule,
+    HrmModule,
+    FleetModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: AllExceptionsFilter },

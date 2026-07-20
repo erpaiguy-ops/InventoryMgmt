@@ -2244,6 +2244,264 @@ export interface Database {
         Update: Partial<Database['v2']['Tables']['asset_disposals']['Insert']>;
         Relationships: [];
       };
+      employees: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          emp_no: string;
+          full_name: string;
+          profile_id: string | null;
+          department: string | null;
+          designation: string | null;
+          email: string | null;
+          phone: string | null;
+          join_date: string | null;
+          is_driver: boolean;
+          basic_salary: number;
+          allowances: number;
+          deductions: number;
+          cost_center_id: string | null;
+          status: 'active' | 'inactive';
+          notes: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          emp_no: string;
+          full_name: string;
+          profile_id?: string | null;
+          department?: string | null;
+          designation?: string | null;
+          email?: string | null;
+          phone?: string | null;
+          join_date?: string | null;
+          is_driver?: boolean;
+          basic_salary?: number;
+          allowances?: number;
+          deductions?: number;
+          cost_center_id?: string | null;
+          status?: 'active' | 'inactive';
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['employees']['Insert']>;
+        Relationships: [];
+      };
+      leave_types: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          name: string;
+          default_days: number;
+          is_paid: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          name: string;
+          default_days?: number;
+          is_paid?: boolean;
+          created_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['leave_types']['Insert']>;
+        Relationships: [];
+      };
+      leave_requests: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          doc_no: string;
+          employee_id: string;
+          leave_type_id: string;
+          from_date: string;
+          to_date: string;
+          days: number;
+          reason_text: string | null;
+          status: 'pending_approval' | 'approved' | 'rejected' | 'cancelled';
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          doc_no: string;
+          employee_id: string;
+          leave_type_id: string;
+          from_date: string;
+          to_date: string;
+          days: number;
+          reason_text?: string | null;
+          status?: 'pending_approval' | 'approved' | 'rejected' | 'cancelled';
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['leave_requests']['Insert']>;
+        Relationships: [];
+      };
+      payroll_runs: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          doc_no: string;
+          run_month: string;
+          status: 'draft' | 'posted' | 'paid';
+          total_gross: number;
+          total_deductions: number;
+          total_net: number;
+          notes: string | null;
+          created_by: string | null;
+          posted_at: string | null;
+          paid_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          doc_no: string;
+          run_month: string;
+          status?: 'draft' | 'posted' | 'paid';
+          total_gross?: number;
+          total_deductions?: number;
+          total_net?: number;
+          notes?: string | null;
+          created_by?: string | null;
+          posted_at?: string | null;
+          paid_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['payroll_runs']['Insert']>;
+        Relationships: [];
+      };
+      payslips: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          run_id: string;
+          employee_id: string;
+          basic: number;
+          allowances: number;
+          deductions: number;
+          net_pay: number;
+          cost_center_id: string | null;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          run_id: string;
+          employee_id: string;
+          basic?: number;
+          allowances?: number;
+          deductions?: number;
+          net_pay?: number;
+          cost_center_id?: string | null;
+        };
+        Update: Partial<Database['v2']['Tables']['payslips']['Insert']>;
+        Relationships: [];
+      };
+      vehicles: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          doc_no: string;
+          reg_no: string;
+          name: string;
+          ownership: 'owned' | 'rented';
+          asset_id: string | null;
+          driver_employee_id: string | null;
+          cost_center_id: string | null;
+          capacity: string | null;
+          status: 'active' | 'inactive';
+          notes: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          doc_no: string;
+          reg_no: string;
+          name: string;
+          ownership?: 'owned' | 'rented';
+          asset_id?: string | null;
+          driver_employee_id?: string | null;
+          cost_center_id?: string | null;
+          capacity?: string | null;
+          status?: 'active' | 'inactive';
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['vehicles']['Insert']>;
+        Relationships: [];
+      };
+      vehicle_documents: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          vehicle_id: string;
+          doc_type: 'registration' | 'insurance' | 'permit' | 'inspection' | 'other';
+          doc_ref: string | null;
+          expiry_date: string | null;
+          notes: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          vehicle_id: string;
+          doc_type: 'registration' | 'insurance' | 'permit' | 'inspection' | 'other';
+          doc_ref?: string | null;
+          expiry_date?: string | null;
+          notes?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['vehicle_documents']['Insert']>;
+        Relationships: [];
+      };
+      vehicle_expenses: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          doc_no: string;
+          vehicle_id: string;
+          expense_type: 'fuel' | 'maintenance' | 'rental' | 'toll' | 'other';
+          expense_date: string;
+          amount: number;
+          odometer: number | null;
+          quantity: number | null;
+          description: string | null;
+          status: 'draft' | 'posted';
+          created_by: string | null;
+          posted_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          doc_no: string;
+          vehicle_id: string;
+          expense_type: 'fuel' | 'maintenance' | 'rental' | 'toll' | 'other';
+          expense_date?: string;
+          amount: number;
+          odometer?: number | null;
+          quantity?: number | null;
+          description?: string | null;
+          status?: 'draft' | 'posted';
+          created_by?: string | null;
+          posted_at?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['vehicle_expenses']['Insert']>;
+        Relationships: [];
+      };
     };
     Views: {
       profile_with_permissions: {
@@ -2365,6 +2623,18 @@ export interface Database {
           normal_balance: 'debit' | 'credit';
           balance: number;
         }[];
+      };
+      post_payroll_run: {
+        Args: { p_tenant_id: string; p_run_id: string };
+        Returns: undefined;
+      };
+      pay_payroll_run: {
+        Args: { p_tenant_id: string; p_run_id: string; p_source_account_id: string };
+        Returns: undefined;
+      };
+      post_vehicle_expense: {
+        Args: { p_tenant_id: string; p_expense_id: string; p_credit_account_id: string };
+        Returns: undefined;
       };
       report_profit_and_loss: {
         Args: {
