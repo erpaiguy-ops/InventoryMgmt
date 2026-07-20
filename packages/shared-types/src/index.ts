@@ -6,3 +6,4 @@ export * from './tenant-auth';
 export * from './master-data';
 export * from './stock';
 export * from './procurement';
+export * from './sales';

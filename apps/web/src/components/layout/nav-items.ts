@@ -10,6 +10,7 @@ import {
   LayoutDashboard,
   Package,
   Settings,
+  ShoppingBag,
   ShoppingCart,
   User,
   Users,
@@ -48,6 +49,12 @@ export const navItems: NavItem[] = [
     label: 'Procurement',
     icon: ShoppingCart,
     permission: { module: MODULES.PROCUREMENT, action: ACTIONS.VIEW },
+  },
+  {
+    href: '/dashboard/sales',
+    label: 'Sales',
+    icon: ShoppingBag,
+    permission: { module: MODULES.SALES, action: ACTIONS.VIEW },
   },
   {
     href: '/dashboard/approvals',

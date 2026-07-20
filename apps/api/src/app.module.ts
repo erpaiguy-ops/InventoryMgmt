@@ -17,6 +17,7 @@ import { ItemsModule } from './modules/items/items.module';
 import { OwnerModule } from './modules/owner/owner.module';
 import { PartnersModule } from './modules/partners/partners.module';
 import { ProcurementModule } from './modules/procurement/procurement.module';
+import { SalesModule } from './modules/sales/sales.module';
 import { SettingsModule } from './modules/settings/settings.module';
 import { UsersModule } from './modules/users/users.module';
 
@@ -40,6 +41,7 @@ import { UsersModule } from './modules/users/users.module';
     ApprovalsModule,
     InventoryModule,
     ProcurementModule,
+    SalesModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: AllExceptionsFilter },
