@@ -1,5 +1,6 @@
 import { Body, Controller, HttpCode, HttpStatus, Post, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import type { User } from '@supabase/supabase-js';
 
 import { CurrentToken } from '../../common/decorators/current-token.decorator';
@@ -24,6 +25,7 @@ export class OwnerAuthController {
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
   login(@Body() dto: OwnerLoginDto) {
     return this.ownerAuthService.signIn(dto);
   }
@@ -36,6 +38,7 @@ export class OwnerAuthController {
 
   @Post('reset-password')
   @HttpCode(HttpStatus.NO_CONTENT)
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
   async resetPassword(@Body() dto: OwnerResetPasswordDto) {
     await this.ownerAuthService.resetPassword(dto);
   }

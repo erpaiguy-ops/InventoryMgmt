@@ -19,8 +19,13 @@ export class PermissionsGuard implements CanActivate {
       [context.getHandler(), context.getClass()],
     );
 
+    // Fail closed: a route behind PermissionsGuard that forgot
+    // @RequirePermission is a bug, not an implicit "allow any authenticated
+    // tenant user" — surface it loudly instead of silently granting access.
     if (!required) {
-      return true;
+      throw new ForbiddenException(
+        'This endpoint is missing a @RequirePermission decorator (fail-closed default)',
+      );
     }
 
     const request = context.switchToHttp().getRequest<AuthenticatedRequest>();

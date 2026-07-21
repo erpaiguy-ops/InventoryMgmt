@@ -3,11 +3,14 @@
  */
 
 export interface DashboardKpis {
-  salesMtd: number;
-  purchasesMtd: number;
-  stockValue: number;
-  openAr: number;
-  openAp: number;
+  // Null when the caller lacks financials view permission — masked
+  // server-side, not just hidden client-side (staff never receives these
+  // figures over the wire).
+  salesMtd: number | null;
+  purchasesMtd: number | null;
+  stockValue: number | null;
+  openAr: number | null;
+  openAp: number | null;
   pendingApprovals: number;
   activeEmployees: number;
   activeVehicles: number;

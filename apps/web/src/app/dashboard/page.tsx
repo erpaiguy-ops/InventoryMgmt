@@ -4,6 +4,7 @@ import {
   AlertTriangle,
   Banknote,
   CheckSquare,
+  Lock,
   Package,
   ShoppingBag,
   ShoppingCart,
@@ -39,20 +40,36 @@ function KpiCard({
   value,
   icon: Icon,
   accent,
+  hidden,
 }: {
   title: string;
   value: string;
   icon: typeof Package;
   accent?: boolean;
+  /** True when the field came back null — masked server-side because the caller lacks permission, not because it's genuinely zero. */
+  hidden?: boolean;
 }) {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-muted-foreground text-sm font-medium">{title}</CardTitle>
-        <Icon className={`h-4 w-4 ${accent ? 'text-destructive' : 'text-muted-foreground'}`} />
+        {hidden ? (
+          <Lock className="text-muted-foreground h-4 w-4" />
+        ) : (
+          <Icon className={`h-4 w-4 ${accent ? 'text-destructive' : 'text-muted-foreground'}`} />
+        )}
       </CardHeader>
       <CardContent>
-        <div className={`text-2xl font-bold ${accent ? 'text-destructive' : ''}`}>{value}</div>
+        {hidden ? (
+          <div
+            className="text-muted-foreground text-2xl font-bold"
+            title="Requires financials access"
+          >
+            &mdash;
+          </div>
+        ) : (
+          <div className={`text-2xl font-bold ${accent ? 'text-destructive' : ''}`}>{value}</div>
+        )}
       </CardContent>
     </Card>
   );
@@ -66,23 +83,50 @@ export default function DashboardPage() {
   const { data: trends } = useMonthlyTrends();
   const { data: topItems } = useTopItems();
 
-  const money = (v: number | undefined) =>
+  const money = (v: number | null | undefined) =>
     (v ?? 0).toLocaleString(undefined, { maximumFractionDigits: 0 });
+
+  // kpis is undefined while loading; the individual fields are null when
+  // the server masked them for lacking financials:view. Only the latter
+  // should render as "hidden" — undefined during load should just show 0
+  // briefly rather than flashing a lock icon.
+  const financialsHidden = kpis !== undefined && kpis.salesMtd === null;
 
   return (
     <div className="space-y-4">
       <h1 className="text-2xl font-semibold">Welcome{fullName ? `, ${fullName}` : ''}</h1>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <KpiCard title="Sales this month" value={money(kpis?.salesMtd)} icon={ShoppingBag} />
+        <KpiCard
+          title="Sales this month"
+          value={money(kpis?.salesMtd)}
+          icon={ShoppingBag}
+          hidden={financialsHidden}
+        />
         <KpiCard
           title="Purchases this month"
           value={money(kpis?.purchasesMtd)}
           icon={ShoppingCart}
+          hidden={financialsHidden}
         />
-        <KpiCard title="Stock value" value={money(kpis?.stockValue)} icon={Package} />
-        <KpiCard title="Receivable (open)" value={money(kpis?.openAr)} icon={Wallet} />
-        <KpiCard title="Payable (open)" value={money(kpis?.openAp)} icon={Banknote} />
+        <KpiCard
+          title="Stock value"
+          value={money(kpis?.stockValue)}
+          icon={Package}
+          hidden={financialsHidden}
+        />
+        <KpiCard
+          title="Receivable (open)"
+          value={money(kpis?.openAr)}
+          icon={Wallet}
+          hidden={financialsHidden}
+        />
+        <KpiCard
+          title="Payable (open)"
+          value={money(kpis?.openAp)}
+          icon={Banknote}
+          hidden={financialsHidden}
+        />
         <KpiCard
           title="Pending approvals"
           value={String(kpis?.pendingApprovals ?? 0)}

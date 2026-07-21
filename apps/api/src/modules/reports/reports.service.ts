@@ -1,8 +1,12 @@
-import type {
-  AuditLogEntry,
-  DashboardKpis,
-  MonthlyTrend,
-  TopItem,
+import {
+  ACTIONS,
+  MODULES,
+  hasPermission,
+  type AuditLogEntry,
+  type DashboardKpis,
+  type MonthlyTrend,
+  type Principal,
+  type TopItem,
 } from '@inventory-mgmt/shared-types';
 import { Injectable, NotFoundException } from '@nestjs/common';
 
@@ -25,17 +29,28 @@ interface AuditRow {
 export class ReportsService {
   constructor(private readonly supabaseService: SupabaseService) {}
 
-  async dashboardKpis(tenantId: string): Promise<DashboardKpis> {
+  /**
+   * The dashboard is everyone's landing page (gated only on items:view), but
+   * the financial figures within it are not — a staff principal without
+   * financials:view gets those fields masked to null server-side, matching
+   * the "financials hidden from staff by default" boundary the Financials
+   * module itself enforces.
+   */
+  async dashboardKpis(tenantId: string, principal: Principal): Promise<DashboardKpis> {
     const raw = await this.supabaseService.callTransaction<Record<string, number>>(
       'report_dashboard_kpis',
       { p_tenant_id: tenantId },
     );
+    const canSeeFinancials =
+      principal.type === 'tenant' &&
+      hasPermission(principal.permissions, MODULES.FINANCIALS, ACTIONS.VIEW);
+
     return {
-      salesMtd: Number(raw?.salesMtd ?? 0),
-      purchasesMtd: Number(raw?.purchasesMtd ?? 0),
-      stockValue: Number(raw?.stockValue ?? 0),
-      openAr: Number(raw?.openAr ?? 0),
-      openAp: Number(raw?.openAp ?? 0),
+      salesMtd: canSeeFinancials ? Number(raw?.salesMtd ?? 0) : null,
+      purchasesMtd: canSeeFinancials ? Number(raw?.purchasesMtd ?? 0) : null,
+      stockValue: canSeeFinancials ? Number(raw?.stockValue ?? 0) : null,
+      openAr: canSeeFinancials ? Number(raw?.openAr ?? 0) : null,
+      openAp: canSeeFinancials ? Number(raw?.openAp ?? 0) : null,
       pendingApprovals: Number(raw?.pendingApprovals ?? 0),
       activeEmployees: Number(raw?.activeEmployees ?? 0),
       activeVehicles: Number(raw?.activeVehicles ?? 0),

@@ -1,6 +1,7 @@
 import type { Principal } from '@inventory-mgmt/shared-types';
 import { Body, Controller, Get, HttpCode, HttpStatus, Post, Put, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import type { User } from '@supabase/supabase-js';
 
 import { CurrentPrincipal } from '../../common/decorators/current-principal.decorator';
@@ -19,9 +20,10 @@ import { UpdateProfileDto } from './dto/update-profile.dto';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  /** Tenant username/password login. No public self-registration — accounts are admin-created via UsersModule. */
+  /** Tenant username/password login. No public self-registration — accounts are admin-created via UsersModule. Tightly throttled: this is the one endpoint an attacker gets unlimited unauthenticated attempts against. */
   @Post('login')
   @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
   login(@Body() dto: LoginDto) {
     return this.authService.signIn(dto);
   }
