@@ -45,6 +45,18 @@ export interface LeaveRequest {
   createdAt: string;
 }
 
+export interface LeaveBalance {
+  id: string;
+  employeeId: string;
+  employeeName?: string;
+  leaveTypeId: string;
+  leaveTypeName?: string;
+  year: number;
+  allocated: number;
+  used: number;
+  remaining: number;
+}
+
 export interface Payslip {
   id: string;
   employeeId: string;

@@ -2350,6 +2350,32 @@ export interface Database {
         Update: Partial<Database['v2']['Tables']['leave_requests']['Insert']>;
         Relationships: [];
       };
+      leave_balances: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          employee_id: string;
+          leave_type_id: string;
+          year: number;
+          allocated: number;
+          used: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          employee_id: string;
+          leave_type_id: string;
+          year: number;
+          allocated?: number;
+          used?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['leave_balances']['Insert']>;
+        Relationships: [];
+      };
       payroll_runs: {
         Row: {
           id: string;

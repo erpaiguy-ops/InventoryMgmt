@@ -60,6 +60,13 @@ export function useCreateLeaveRequest() {
   });
 }
 
+export function useLeaveBalances() {
+  return useQuery({
+    queryKey: [HRM, 'leave-balances'],
+    queryFn: () => hrmService.listLeaveBalances(),
+  });
+}
+
 export function usePayrollRuns() {
   return useQuery({
     queryKey: [HRM, 'payroll-runs'],

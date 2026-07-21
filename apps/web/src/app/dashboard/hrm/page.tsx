@@ -5,6 +5,7 @@ import {
   hasPermission,
   MODULES,
   type Employee,
+  type LeaveBalance,
   type LeaveRequest,
   type PayrollRun,
 } from '@inventory-mgmt/shared-types';
@@ -47,6 +48,7 @@ import {
   useCreateEmployee,
   useCreateLeaveRequest,
   useEmployees,
+  useLeaveBalances,
   useLeaveRequests,
   useLeaveTypes,
   usePayPayrollRun,
@@ -273,6 +275,7 @@ function EmployeesTab() {
 
 function LeaveTab() {
   const { data: requests, isLoading } = useLeaveRequests();
+  const { data: balances } = useLeaveBalances();
   const { data: employees } = useEmployees();
   const { data: leaveTypes } = useLeaveTypes();
   const createRequest = useCreateLeaveRequest();
@@ -442,6 +445,41 @@ function LeaveTab() {
         loading={isLoading}
         emptyMessage="No leave requests yet"
       />
+
+      <div className="space-y-2">
+        <h3 className="text-sm font-semibold">Leave balances</h3>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Employee</TableHead>
+              <TableHead>Type</TableHead>
+              <TableHead>Year</TableHead>
+              <TableHead className="text-right">Allocated</TableHead>
+              <TableHead className="text-right">Used</TableHead>
+              <TableHead className="text-right">Remaining</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {(balances ?? []).map((b: LeaveBalance) => (
+              <TableRow key={b.id}>
+                <TableCell>{b.employeeName ?? b.employeeId}</TableCell>
+                <TableCell>{b.leaveTypeName ?? '—'}</TableCell>
+                <TableCell>{b.year}</TableCell>
+                <TableCell className="text-right">{b.allocated.toFixed(1)}</TableCell>
+                <TableCell className="text-right">{b.used.toFixed(1)}</TableCell>
+                <TableCell className="text-right font-medium">{b.remaining.toFixed(1)}</TableCell>
+              </TableRow>
+            ))}
+            {(balances ?? []).length === 0 && (
+              <TableRow>
+                <TableCell colSpan={6} className="text-muted-foreground text-center">
+                  No paid leave taken yet — balances appear once a request is approved.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 }

@@ -1,4 +1,10 @@
-import type { Employee, LeaveRequest, LeaveType, PayrollRun } from '@inventory-mgmt/shared-types';
+import type {
+  Employee,
+  LeaveBalance,
+  LeaveRequest,
+  LeaveType,
+  PayrollRun,
+} from '@inventory-mgmt/shared-types';
 
 import { apiClient } from './api-client';
 
@@ -40,6 +46,7 @@ export const hrmService = {
   listLeaveRequests: () => apiClient.get<LeaveRequest[]>('/hrm/leave-requests'),
   createLeaveRequest: (p: LeaveRequestPayload) =>
     apiClient.post<LeaveRequest[]>('/hrm/leave-requests', p),
+  listLeaveBalances: () => apiClient.get<LeaveBalance[]>('/hrm/leave-balances'),
 
   listPayrollRuns: () => apiClient.get<PayrollRun[]>('/hrm/payroll-runs'),
   runPayroll: (runMonth: string, notes?: string) =>

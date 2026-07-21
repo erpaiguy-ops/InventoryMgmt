@@ -1,4 +1,10 @@
-import type { Employee, LeaveRequest, LeaveType, PayrollRun } from '@inventory-mgmt/shared-types';
+import type {
+  Employee,
+  LeaveBalance,
+  LeaveRequest,
+  LeaveType,
+  PayrollRun,
+} from '@inventory-mgmt/shared-types';
 import {
   BadRequestException,
   ConflictException,
@@ -79,6 +85,14 @@ interface PayslipRow {
   net_pay: number;
   cost_center_id: string | null;
 }
+interface LeaveBalanceRow {
+  id: string;
+  employee_id: string;
+  leave_type_id: string;
+  year: number;
+  allocated: number;
+  used: number;
+}
 
 const toEmployee = (r: EmployeeRow): Employee => ({
   id: r.id,
@@ -109,12 +123,15 @@ export class HrmService implements OnModuleInit {
   ) {}
 
   onModuleInit(): void {
-    // Leave: final approval flips the status — no stock or GL involved.
+    // Leave: final approval deducts the employee's leave balance (paid types
+    // only) and flips the status — both atomically, in the same RPC, so a
+    // balance can't be exceeded by two requests approved back to back.
     this.approvalsService.registerDocType(
       'leave_request',
       async (tenantId, docId) => {
-        await this.supabaseService.updateTenant(tenantId, 'leave_requests', docId, {
-          status: 'approved',
+        await this.supabaseService.callTransaction('approve_leave_request', {
+          p_tenant_id: tenantId,
+          p_doc_id: docId,
         });
       },
       async (tenantId, docId) => {
@@ -227,12 +244,39 @@ export class HrmService implements OnModuleInit {
     }));
   }
 
-  /** Creates the request already inside the approval chain — leave never self-approves. */
+  /**
+   * Creates the request already inside the approval chain — leave never
+   * self-approves. Fails fast here if a paid leave type's balance can't
+   * cover it; the DB-level check inside approve_leave_request at final
+   * approval is the actual enforcement point (it catches the case where
+   * two pending requests together would overdraw the same balance).
+   */
   async createLeaveRequest(
     tenantId: string,
     dto: CreateLeaveRequestDto,
     createdBy?: string,
   ): Promise<LeaveRequest[]> {
+    const leaveTypes = await this.listLeaveTypes(tenantId);
+    const leaveType = leaveTypes.find((t) => t.id === dto.leaveTypeId);
+    if (leaveType?.isPaid) {
+      const year = new Date(dto.fromDate).getUTCFullYear();
+      const balance = await this.supabaseService.callTransaction<LeaveBalanceRow>(
+        'ensure_leave_balance',
+        {
+          p_tenant_id: tenantId,
+          p_employee_id: dto.employeeId,
+          p_leave_type_id: dto.leaveTypeId,
+          p_year: year,
+        },
+      );
+      const remaining = Number(balance.allocated) - Number(balance.used);
+      if (remaining < dto.days) {
+        throw new BadRequestException(
+          `Insufficient leave balance: ${remaining} day(s) of ${leaveType.name} remaining for ${year}`,
+        );
+      }
+    }
+
     const docNo = await this.supabaseService.callTransaction<string>('next_doc_number', {
       p_tenant_id: tenantId,
       p_doc_type: 'leave_request',
@@ -261,6 +305,33 @@ export class HrmService implements OnModuleInit {
     });
 
     return this.listLeaveRequests(tenantId);
+  }
+
+  async listLeaveBalances(tenantId: string): Promise<LeaveBalance[]> {
+    const { data, error } = (await this.supabaseService
+      .selectTenant(tenantId, 'leave_balances')
+      .order('year', { ascending: false })) as unknown as {
+      data: LeaveBalanceRow[] | null;
+      error: QueryError;
+    };
+    if (error) throw new NotFoundException(error.message);
+
+    const employees = await this.listEmployees(tenantId);
+    const employeeMap = new Map(employees.map((e) => [e.id, e.fullName]));
+    const leaveTypes = await this.listLeaveTypes(tenantId);
+    const typeMap = new Map(leaveTypes.map((t) => [t.id, t.name]));
+
+    return (data ?? []).map((r) => ({
+      id: r.id,
+      employeeId: r.employee_id,
+      employeeName: employeeMap.get(r.employee_id),
+      leaveTypeId: r.leave_type_id,
+      leaveTypeName: typeMap.get(r.leave_type_id),
+      year: r.year,
+      allocated: Number(r.allocated),
+      used: Number(r.used),
+      remaining: Number(r.allocated) - Number(r.used),
+    }));
   }
 
   // --- payroll -----------------------------------------------------------------

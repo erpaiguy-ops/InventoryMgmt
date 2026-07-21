@@ -62,6 +62,12 @@ export class HrmController {
     return this.hrmService.listLeaveRequests(tenantId);
   }
 
+  @Get('leave-balances')
+  @RequirePermission(MODULES.HRM, ACTIONS.VIEW)
+  listLeaveBalances(@CurrentTenant() tenantId: string) {
+    return this.hrmService.listLeaveBalances(tenantId);
+  }
+
   @Post('leave-requests')
   @RequirePermission(MODULES.HRM, ACTIONS.CREATE)
   createLeaveRequest(
