@@ -49,6 +49,9 @@ interface OrgSettingsRow {
   fiscal_year_start_month: number;
   document_footer: string | null;
   logo_path: string | null;
+  address: string | null;
+  phone: string | null;
+  tax_number: string | null;
   updated_at: string;
 }
 
@@ -74,12 +77,16 @@ const toSeries = (r: SeriesRow): NumberingSeries => ({
   nextNumber: r.next_number,
   padding: r.padding,
 });
-const toOrgSettings = (r: OrgSettingsRow): OrgSettings => ({
+const toOrgSettings = (r: OrgSettingsRow, orgName: string): OrgSettings => ({
   tenantId: r.tenant_id,
+  orgName,
   currency: r.currency,
   fiscalYearStartMonth: r.fiscal_year_start_month,
   documentFooter: r.document_footer,
   logoPath: r.logo_path,
+  address: r.address,
+  phone: r.phone,
+  taxNumber: r.tax_number,
   updatedAt: r.updated_at,
 });
 
@@ -258,7 +265,8 @@ export class SettingsService {
       .selectTenant(tenantId, 'org_settings')
       .maybeSingle()) as { data: OrgSettingsRow | null; error: QueryError };
     if (error || !data) throw new NotFoundException('Organization settings not found');
-    return toOrgSettings(data);
+    const orgName = await this.supabaseService.getOrganizationName(tenantId);
+    return toOrgSettings(data, orgName);
   }
 
   async updateOrgSettings(tenantId: string, dto: UpdateOrgSettingsDto): Promise<OrgSettings> {
@@ -267,12 +275,16 @@ export class SettingsService {
         currency: dto.currency,
         fiscal_year_start_month: dto.fiscalYearStartMonth,
         document_footer: dto.documentFooter,
+        address: dto.address,
+        phone: dto.phone,
+        tax_number: dto.taxNumber,
       })
       .select()
       .maybeSingle()) as { data: OrgSettingsRow | null; error: QueryError };
     if (updateError || !updated) {
       throw new ConflictException(updateError?.message ?? 'Failed to update settings');
     }
-    return toOrgSettings(updated);
+    const orgName = await this.supabaseService.getOrganizationName(tenantId);
+    return toOrgSettings(updated, orgName);
   }
 }

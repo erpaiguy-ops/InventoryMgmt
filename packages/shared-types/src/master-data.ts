@@ -10,10 +10,14 @@
 
 export interface OrgSettings {
   tenantId: string;
+  orgName: string;
   currency: string;
   fiscalYearStartMonth: number;
   documentFooter: string | null;
   logoPath: string | null;
+  address: string | null;
+  phone: string | null;
+  taxNumber: string | null;
   updatedAt: string;
 }
 

@@ -1,7 +1,7 @@
 'use client';
 
-import { type ReportRow } from '@inventory-mgmt/shared-types';
-import { ArrowLeft } from 'lucide-react';
+import { type OrgSettings, type ReportRow } from '@inventory-mgmt/shared-types';
+import { ArrowLeft, FileSpreadsheet, Printer } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
 
@@ -25,6 +25,30 @@ import {
 } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useBalanceSheet, useCostCenters, useProfitAndLoss } from '@/hooks/use-financials';
+import { useOrgSettings } from '@/hooks/use-settings';
+import { exportCsv, printLetterheadDocument, tableHtml, type Letterhead } from '@/lib/exports';
+
+function toLetterhead(settings: OrgSettings | undefined): Letterhead {
+  return {
+    orgName: settings?.orgName ?? 'Company',
+    address: settings?.address,
+    phone: settings?.phone,
+    taxNumber: settings?.taxNumber,
+    footer: settings?.documentFooter,
+  };
+}
+
+function statementRowsToCsv(rows: ReportRow[]): (string | number)[][] {
+  return rows.map((r) => [r.code, r.name, r.accountType, r.balance]);
+}
+
+function statementHtml(rows: ReportRow[]): string {
+  return tableHtml(
+    ['Code', 'Account', 'Type', 'Balance'],
+    rows.map((r) => [r.code, r.name, r.accountType, r.balance.toFixed(2)]),
+    [3],
+  );
+}
 
 const todayIso = () => new Date().toISOString().slice(0, 10);
 const yearStartIso = () => `${new Date().getFullYear()}-01-01`;
@@ -71,6 +95,7 @@ function StatementTable({ rows, groupLabel }: { rows: ReportRow[]; groupLabel: s
 function BalanceSheetTab() {
   const [asOf, setAsOf] = useState(todayIso());
   const { data: rows, isLoading } = useBalanceSheet(asOf);
+  const { data: orgSettings } = useOrgSettings();
 
   const assets = (rows ?? []).filter((r) => r.accountType === 'asset');
   const liabilities = (rows ?? []).filter((r) => r.accountType === 'liability');
@@ -78,9 +103,39 @@ function BalanceSheetTab() {
 
   return (
     <div className="space-y-4">
-      <div className="w-48 space-y-1">
-        <Label>As of</Label>
-        <Input type="date" value={asOf} onChange={(e) => setAsOf(e.target.value)} />
+      <div className="flex items-end gap-3">
+        <div className="w-48 space-y-1">
+          <Label>As of</Label>
+          <Input type="date" value={asOf} onChange={(e) => setAsOf(e.target.value)} />
+        </div>
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={(rows ?? []).length === 0}
+          onClick={() =>
+            exportCsv(
+              `balance-sheet-${asOf}`,
+              ['Code', 'Account', 'Type', 'Balance'],
+              statementRowsToCsv(rows ?? []),
+            )
+          }
+        >
+          <FileSpreadsheet className="mr-2 h-4 w-4" /> CSV
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={(rows ?? []).length === 0}
+          onClick={() =>
+            printLetterheadDocument(
+              toLetterhead(orgSettings),
+              `Balance Sheet as of ${asOf}`,
+              statementHtml(rows ?? []),
+            )
+          }
+        >
+          <Printer className="mr-2 h-4 w-4" /> Print / PDF
+        </Button>
       </div>
       {isLoading ? (
         <p className="text-muted-foreground text-sm">Loading…</p>
@@ -110,6 +165,7 @@ function ProfitAndLossTab() {
   const [costCenterId, setCostCenterId] = useState('');
   const { data: costCenters } = useCostCenters();
   const { data: rows, isLoading } = useProfitAndLoss(from, to, costCenterId || undefined);
+  const { data: orgSettings } = useOrgSettings();
 
   const revenue = (rows ?? []).filter((r) => r.accountType === 'revenue');
   const expense = (rows ?? []).filter((r) => r.accountType === 'expense');
@@ -146,6 +202,34 @@ function ProfitAndLossTab() {
             </SelectContent>
           </Select>
         </div>
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={(rows ?? []).length === 0}
+          onClick={() =>
+            exportCsv(
+              `profit-and-loss-${from}-${to}`,
+              ['Code', 'Account', 'Type', 'Balance'],
+              statementRowsToCsv(rows ?? []),
+            )
+          }
+        >
+          <FileSpreadsheet className="mr-2 h-4 w-4" /> CSV
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={(rows ?? []).length === 0}
+          onClick={() =>
+            printLetterheadDocument(
+              toLetterhead(orgSettings),
+              `Profit & Loss ${from} to ${to}`,
+              statementHtml(rows ?? []),
+            )
+          }
+        >
+          <Printer className="mr-2 h-4 w-4" /> Print / PDF
+        </Button>
       </div>
       {isLoading ? (
         <p className="text-muted-foreground text-sm">Loading…</p>

@@ -509,12 +509,18 @@ function OrgTab({ canManage }: { canManage: boolean }) {
   const [currency, setCurrency] = useState('');
   const [fiscalMonth, setFiscalMonth] = useState('1');
   const [footer, setFooter] = useState('');
+  const [address, setAddress] = useState('');
+  const [phone, setPhone] = useState('');
+  const [taxNumber, setTaxNumber] = useState('');
 
   useEffect(() => {
     if (settings) {
       setCurrency(settings.currency);
       setFiscalMonth(String(settings.fiscalYearStartMonth));
       setFooter(settings.documentFooter ?? '');
+      setAddress(settings.address ?? '');
+      setPhone(settings.phone ?? '');
+      setTaxNumber(settings.taxNumber ?? '');
     }
   }, [settings]);
 
@@ -548,6 +554,37 @@ function OrgTab({ canManage }: { canManage: boolean }) {
           />
         </div>
         <div className="space-y-1">
+          <Label htmlFor="org-address">Address (letterhead)</Label>
+          <Textarea
+            id="org-address"
+            value={address}
+            disabled={!canManage}
+            onChange={(e) => setAddress(e.target.value)}
+            placeholder="Printed at the top of exported documents"
+            rows={2}
+          />
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1">
+            <Label htmlFor="org-phone">Phone (letterhead)</Label>
+            <Input
+              id="org-phone"
+              value={phone}
+              disabled={!canManage}
+              onChange={(e) => setPhone(e.target.value)}
+            />
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="org-taxno">Tax number (letterhead)</Label>
+            <Input
+              id="org-taxno"
+              value={taxNumber}
+              disabled={!canManage}
+              onChange={(e) => setTaxNumber(e.target.value)}
+            />
+          </div>
+        </div>
+        <div className="space-y-1">
           <Label htmlFor="org-footer">Document footer</Label>
           <Textarea
             id="org-footer"
@@ -566,6 +603,9 @@ function OrgTab({ canManage }: { canManage: boolean }) {
                   currency,
                   fiscalYearStartMonth: Number(fiscalMonth),
                   documentFooter: footer,
+                  address,
+                  phone,
+                  taxNumber,
                 },
                 {
                   onSuccess: () => toast.success('Settings saved'),

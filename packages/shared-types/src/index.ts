@@ -11,3 +11,4 @@ export * from './financials';
 export * from './fixed-assets';
 export * from './hrm';
 export * from './fleet';
+export * from './reports';

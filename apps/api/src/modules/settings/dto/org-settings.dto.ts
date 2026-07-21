@@ -16,4 +16,19 @@ export class UpdateOrgSettingsDto {
   @IsString()
   @MaxLength(1000)
   documentFooter?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  address?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(32)
+  phone?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(64)
+  taxNumber?: string;
 }

@@ -7,6 +7,7 @@ import {
 import {
   Building,
   CheckSquare,
+  ClipboardList,
   Contact,
   LayoutDashboard,
   Package,
@@ -89,6 +90,12 @@ export const navItems: NavItem[] = [
     label: 'Approvals',
     icon: CheckSquare,
     permission: { module: MODULES.APPROVALS, action: ACTIONS.VIEW },
+  },
+  {
+    href: '/dashboard/audit',
+    label: 'Audit',
+    icon: ClipboardList,
+    permission: { module: MODULES.SETTINGS, action: ACTIONS.MANAGE },
   },
   {
     href: '/dashboard/settings',

@@ -88,6 +88,21 @@ export class SupabaseService {
     return data.slug;
   }
 
+  /** Purpose-built lookup mirroring getOrganizationSlug: the org's display name for letterhead documents. */
+  async getOrganizationName(tenantId: string): Promise<string> {
+    const { data, error } = await this.adminClient
+      .from('organizations')
+      .select('name')
+      .eq('id', tenantId)
+      .single();
+
+    if (error || !data) {
+      throw new InternalServerErrorException(error?.message ?? 'Organization not found');
+    }
+
+    return data.name;
+  }
+
   /** Purpose-built update for the platform owner's own display name — platform_owners isn't tenant-scoped, so it's exempt from selectTenant/etc. by design, not by omission. */
   async updateOwnerFullName(id: string, fullName: string | undefined): Promise<void> {
     const { error } = await this.adminClient

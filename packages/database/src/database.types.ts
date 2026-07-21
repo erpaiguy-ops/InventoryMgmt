@@ -391,6 +391,9 @@ export interface Database {
           logo_path: string | null;
           po_approval_min_total: number | null;
           so_approval_min_total: number | null;
+          address: string | null;
+          phone: string | null;
+          tax_number: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -402,6 +405,9 @@ export interface Database {
           logo_path?: string | null;
           po_approval_min_total?: number | null;
           so_approval_min_total?: number | null;
+          address?: string | null;
+          phone?: string | null;
+          tax_number?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -2502,6 +2508,32 @@ export interface Database {
         Update: Partial<Database['v2']['Tables']['vehicle_expenses']['Insert']>;
         Relationships: [];
       };
+      audit_log: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          actor_id: string | null;
+          actor_name: string | null;
+          method: string;
+          path: string;
+          module: string | null;
+          summary: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          actor_id?: string | null;
+          actor_name?: string | null;
+          method: string;
+          path: string;
+          module?: string | null;
+          summary?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['audit_log']['Insert']>;
+        Relationships: [];
+      };
     };
     Views: {
       profile_with_permissions: {
@@ -2635,6 +2667,18 @@ export interface Database {
       post_vehicle_expense: {
         Args: { p_tenant_id: string; p_expense_id: string; p_credit_account_id: string };
         Returns: undefined;
+      };
+      report_dashboard_kpis: {
+        Args: { p_tenant_id: string };
+        Returns: Json;
+      };
+      report_monthly_trends: {
+        Args: { p_tenant_id: string };
+        Returns: { month: string; sales: number; purchases: number }[];
+      };
+      report_top_items: {
+        Args: { p_tenant_id: string; p_limit?: number };
+        Returns: { item_id: string; sku: string; name: string; qty: number; revenue: number }[];
       };
       report_profit_and_loss: {
         Args: {

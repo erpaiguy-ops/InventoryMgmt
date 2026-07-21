@@ -35,6 +35,9 @@ export interface NumberingSeriesPayload {
 }
 
 export interface OrgSettingsPayload {
+  address?: string;
+  phone?: string;
+  taxNumber?: string;
   currency?: string;
   fiscalYearStartMonth?: number;
   documentFooter?: string;
