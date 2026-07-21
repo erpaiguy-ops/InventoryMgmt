@@ -80,6 +80,8 @@ interface BillRow {
   status: 'open' | 'paid' | 'cancelled';
   total: number;
   amount_paid: number;
+  currency: string;
+  fx_rate: number;
   notes: string | null;
   created_at: string;
 }
@@ -163,6 +165,13 @@ export class ProcurementService implements OnModuleInit {
       .selectTenant(tenantId, 'partners', 'id, name')
       .in('id', [...new Set(ids)])) as unknown as { data: { id: string; name: string }[] | null };
     return new Map((data ?? []).map((p) => [p.id, p.name]));
+  }
+
+  private async orgCurrency(tenantId: string): Promise<string> {
+    const { data } = (await this.supabaseService
+      .selectTenant(tenantId, 'org_settings', 'currency')
+      .maybeSingle()) as { data: { currency: string } | null };
+    return data?.currency ?? 'USD';
   }
 
   // --- purchase orders --------------------------------------------------------
@@ -484,6 +493,8 @@ export class ProcurementService implements OnModuleInit {
       status: row.status,
       total: row.total,
       amountPaid: row.amount_paid,
+      currency: row.currency,
+      fxRate: Number(row.fx_rate),
       notes: row.notes,
       createdAt: row.created_at,
       lines: (lines ?? []).map((line) => ({
@@ -522,6 +533,9 @@ export class ProcurementService implements OnModuleInit {
       total += line.qty * (line.unitPrice ?? poLine.unitPrice);
     }
 
+    const currency = dto.currency ?? (await this.orgCurrency(tenantId));
+    const fxRate = dto.fxRate ?? 1;
+
     const docNo = await this.supabaseService.callTransaction<string>('next_doc_number', {
       p_tenant_id: tenantId,
       p_doc_type: 'purchase_bill',
@@ -536,6 +550,8 @@ export class ProcurementService implements OnModuleInit {
         bill_date: dto.billDate,
         due_date: dto.dueDate,
         total,
+        currency,
+        fx_rate: fxRate,
         notes: dto.notes,
         created_by: createdBy,
       })
@@ -571,8 +587,8 @@ export class ProcurementService implements OnModuleInit {
         p_source_doc_id: bill.id,
         p_memo: `Bill ${bill.doc_no} for PO ${po.docNo}`,
         p_lines: [
-          { account_role: 'grni', debit: total },
-          { account_role: 'ap', credit: total, partner_id: po.supplierId },
+          { account_role: 'grni', debit: total * fxRate },
+          { account_role: 'ap', credit: total * fxRate, partner_id: po.supplierId },
         ],
         p_created_by: createdBy,
       });

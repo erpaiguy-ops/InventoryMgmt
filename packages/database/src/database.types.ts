@@ -1434,6 +1434,8 @@ export interface Database {
           status: 'open' | 'paid' | 'cancelled';
           total: number;
           amount_paid: number;
+          currency: string;
+          fx_rate: number;
           notes: string | null;
           created_by: string | null;
           created_at: string;
@@ -1451,6 +1453,8 @@ export interface Database {
           status?: 'open' | 'paid' | 'cancelled';
           total?: number;
           amount_paid?: number;
+          currency?: string;
+          fx_rate?: number;
           notes?: string | null;
           created_by?: string | null;
           created_at?: string;
@@ -1709,6 +1713,8 @@ export interface Database {
           tax_total: number;
           total: number;
           amount_paid: number;
+          currency: string;
+          fx_rate: number;
           notes: string | null;
           created_by: string | null;
           created_at: string;
@@ -1727,6 +1733,8 @@ export interface Database {
           tax_total?: number;
           total?: number;
           amount_paid?: number;
+          currency?: string;
+          fx_rate?: number;
           notes?: string | null;
           created_by?: string | null;
           created_at?: string;
@@ -2000,9 +2008,11 @@ export interface Database {
           txn_date: string;
           description: string | null;
           amount: number;
-          source: 'manual' | 'receipt' | 'payment';
+          reference: string | null;
+          source: 'manual' | 'receipt' | 'payment' | 'feed';
           source_doc_type: string | null;
           source_doc_id: string | null;
+          matched_txn_id: string | null;
           is_reconciled: boolean;
           reconciled_at: string | null;
           created_by: string | null;
@@ -2015,9 +2025,11 @@ export interface Database {
           txn_date?: string;
           description?: string | null;
           amount: number;
-          source?: 'manual' | 'receipt' | 'payment';
+          reference?: string | null;
+          source?: 'manual' | 'receipt' | 'payment' | 'feed';
           source_doc_type?: string | null;
           source_doc_id?: string | null;
+          matched_txn_id?: string | null;
           is_reconciled?: boolean;
           reconciled_at?: string | null;
           created_by?: string | null;
@@ -2034,6 +2046,8 @@ export interface Database {
           customer_id: string;
           receipt_date: string;
           amount: number;
+          currency: string;
+          fx_rate: number;
           payment_method_id: string | null;
           notes: string | null;
           created_by: string | null;
@@ -2046,6 +2060,8 @@ export interface Database {
           customer_id: string;
           receipt_date?: string;
           amount: number;
+          currency?: string;
+          fx_rate?: number;
           payment_method_id?: string | null;
           notes?: string | null;
           created_by?: string | null;
@@ -2080,6 +2096,8 @@ export interface Database {
           supplier_id: string;
           payment_date: string;
           amount: number;
+          currency: string;
+          fx_rate: number;
           payment_method_id: string | null;
           notes: string | null;
           created_by: string | null;
@@ -2092,6 +2110,8 @@ export interface Database {
           supplier_id: string;
           payment_date?: string;
           amount: number;
+          currency?: string;
+          fx_rate?: number;
           payment_method_id?: string | null;
           notes?: string | null;
           created_by?: string | null;

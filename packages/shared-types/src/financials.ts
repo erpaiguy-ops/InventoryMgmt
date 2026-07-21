@@ -78,12 +78,22 @@ export interface BankTransaction {
   txnDate: string;
   description: string | null;
   amount: number;
-  source: 'manual' | 'receipt' | 'payment';
+  reference: string | null;
+  source: 'manual' | 'receipt' | 'payment' | 'feed';
   sourceDocType: string | null;
   sourceDocId: string | null;
+  /** Set on a 'feed' row once matched against an existing system entry. */
+  matchedTxnId: string | null;
   isReconciled: boolean;
   reconciledAt: string | null;
   createdAt: string;
+}
+
+export interface BankFeedRow {
+  txnDate: string;
+  description: string;
+  amount: number;
+  reference?: string;
 }
 
 export interface ArReceiptAllocation {
@@ -100,6 +110,10 @@ export interface ArReceipt {
   customerName?: string;
   receiptDate: string;
   amount: number;
+  /** ISO 4217 code — every allocated invoice must share this currency. */
+  currency: string;
+  /** Units of the tenant's base currency per 1 unit of `currency`, captured at receipt time (drives FX gain/loss vs. each invoice's own booked rate). */
+  fxRate: number;
   paymentMethodId: string | null;
   notes: string | null;
   createdAt: string;
@@ -120,6 +134,10 @@ export interface ApPayment {
   supplierName?: string;
   paymentDate: string;
   amount: number;
+  /** ISO 4217 code — every allocated bill must share this currency. */
+  currency: string;
+  /** Units of the tenant's base currency per 1 unit of `currency`, captured at payment time (drives FX gain/loss vs. each bill's own booked rate). */
+  fxRate: number;
   paymentMethodId: string | null;
   notes: string | null;
   createdAt: string;

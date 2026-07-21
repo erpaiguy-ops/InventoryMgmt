@@ -34,6 +34,7 @@ import {
 import { usePartners } from '@/hooks/use-partners';
 import { usePrincipal } from '@/hooks/use-principal';
 import { usePurchaseBills } from '@/hooks/use-procurement';
+import { useOrgSettings } from '@/hooks/use-settings';
 
 export default function ApPaymentsPage() {
   const { data: payments, isLoading } = useApPayments();
@@ -41,6 +42,7 @@ export default function ApPaymentsPage() {
   const { data: bills } = usePurchaseBills();
   const { data: paymentMethods } = usePaymentMethods();
   const { data: accounts } = useAccounts();
+  const { data: orgSettings } = useOrgSettings();
   const createPayment = useCreateApPayment();
 
   const { principal } = usePrincipal();
@@ -52,12 +54,19 @@ export default function ApPaymentsPage() {
   const [paymentMethodId, setPaymentMethodId] = useState('');
   const [sourceAccountId, setSourceAccountId] = useState('');
   const [amount, setAmount] = useState('');
+  const [currency, setCurrency] = useState('');
+  const [fxRate, setFxRate] = useState('1');
   const [allocations, setAllocations] = useState<Record<string, string>>({});
 
   const suppliers = suppliersPage?.data ?? [];
+  const effectiveCurrency = currency.trim() || orgSettings?.currency || 'USD';
   const openBills = useMemo(
-    () => (bills ?? []).filter((b) => b.status === 'open' && b.supplierId === supplierId),
-    [bills, supplierId],
+    () =>
+      (bills ?? []).filter(
+        (b) =>
+          b.status === 'open' && b.supplierId === supplierId && b.currency === effectiveCurrency,
+      ),
+    [bills, supplierId, effectiveCurrency],
   );
 
   const columns: DataTableColumn<ApPayment>[] = [
@@ -86,6 +95,8 @@ export default function ApPaymentsPage() {
     setPaymentMethodId('');
     setSourceAccountId('');
     setAmount('');
+    setCurrency('');
+    setFxRate('1');
     setAllocations({});
   };
 
@@ -185,6 +196,27 @@ export default function ApPaymentsPage() {
                     </Select>
                   </div>
                 </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label>Currency</Label>
+                    <Input
+                      value={currency}
+                      placeholder={orgSettings?.currency ?? 'USD'}
+                      onChange={(e) => setCurrency(e.target.value.toUpperCase())}
+                      maxLength={3}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label>FX rate (to base currency)</Label>
+                    <Input
+                      type="number"
+                      step="any"
+                      min={0}
+                      value={fxRate}
+                      onChange={(e) => setFxRate(e.target.value)}
+                    />
+                  </div>
+                </div>
                 {supplierId && (
                   <div className="space-y-2">
                     <Label>Allocate against open bills</Label>
@@ -232,6 +264,8 @@ export default function ApPaymentsPage() {
                       {
                         supplierId,
                         amount: Number(amount),
+                        currency: currency.trim() || undefined,
+                        fxRate: Number(fxRate) || 1,
                         paymentMethodId,
                         sourceAccountId,
                         allocations: Object.entries(allocations)

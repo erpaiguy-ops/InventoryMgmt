@@ -18,6 +18,8 @@ import {
   CreateCostCenterDto,
   CreateJournalEntryDto,
   CreatePaymentMethodDto,
+  ImportBankFeedDto,
+  MatchBankTransactionDto,
   UpdateAccountDto,
   UpdateCostCenterDto,
 } from './dto/financials.dto';
@@ -145,6 +147,26 @@ export class FinancialsController {
   @RequirePermission(MODULES.FINANCIALS, ACTIONS.UPDATE)
   reconcileBankTransaction(@CurrentTenant() tenantId: string, @Param('id') id: string) {
     return this.financialsService.reconcileBankTransaction(tenantId, id);
+  }
+
+  @Post('bank-transactions/import')
+  @RequirePermission(MODULES.FINANCIALS, ACTIONS.CREATE)
+  importBankFeed(
+    @CurrentTenant() tenantId: string,
+    @Body() dto: ImportBankFeedDto,
+    @CurrentPrincipal() principal: Principal,
+  ) {
+    return this.financialsService.importBankFeed(tenantId, dto, principal.id);
+  }
+
+  @Post('bank-transactions/:id/match')
+  @RequirePermission(MODULES.FINANCIALS, ACTIONS.UPDATE)
+  matchBankTransaction(
+    @CurrentTenant() tenantId: string,
+    @Param('id') id: string,
+    @Body() dto: MatchBankTransactionDto,
+  ) {
+    return this.financialsService.matchBankTransaction(tenantId, id, dto);
   }
 
   // --- AR receipts ----------------------------------------------------------------

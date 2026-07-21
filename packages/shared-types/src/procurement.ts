@@ -84,6 +84,10 @@ export interface PurchaseBill {
   status: 'open' | 'paid' | 'cancelled';
   total: number;
   amountPaid: number;
+  /** ISO 4217 code. Totals/balances above are all in this currency — only the GL posting behind the scenes converts to the tenant's base currency. */
+  currency: string;
+  /** Units of the tenant's base currency per 1 unit of `currency`, captured at bill time. */
+  fxRate: number;
   notes: string | null;
   createdAt: string;
   lines: PurchaseBillLine[];

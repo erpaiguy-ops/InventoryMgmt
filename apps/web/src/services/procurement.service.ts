@@ -33,6 +33,8 @@ export interface BillPayload {
   supplierBillNo?: string;
   billDate?: string;
   dueDate?: string;
+  currency?: string;
+  fxRate?: number;
   notes?: string;
   lines: { poLineId: string; qty: number; unitPrice?: number }[];
 }

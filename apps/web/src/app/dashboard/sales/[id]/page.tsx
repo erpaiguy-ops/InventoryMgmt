@@ -43,7 +43,7 @@ import {
   useSalesOrder,
   useSubmitSo,
 } from '@/hooks/use-sales';
-import { useWarehouses } from '@/hooks/use-settings';
+import { useOrgSettings, useWarehouses } from '@/hooks/use-settings';
 
 const STATUS_VARIANT: Record<
   SalesOrderDoc['status'],
@@ -64,6 +64,7 @@ export default function SalesOrderDetailPage() {
   const { data: so, isLoading } = useSalesOrder(soId);
   const { data: deliveries } = useDeliveries(soId);
   const { data: warehouses } = useWarehouses();
+  const { data: orgSettings } = useOrgSettings();
   const submitSo = useSubmitSo();
   const cancelSo = useCancelSo();
   const deliverGoods = useDeliverGoods();
@@ -79,6 +80,8 @@ export default function SalesOrderDetailPage() {
   const [deliverQty, setDeliverQty] = useState<Record<string, string>>({});
   const [invoiceOpen, setInvoiceOpen] = useState(false);
   const [invoiceQty, setInvoiceQty] = useState<Record<string, string>>({});
+  const [invoiceCurrency, setInvoiceCurrency] = useState('');
+  const [invoiceFxRate, setInvoiceFxRate] = useState('1');
 
   if (isLoading || !so) {
     return <p className="text-muted-foreground text-sm">Loading sales order…</p>;
@@ -372,6 +375,27 @@ export default function SalesOrderDetailPage() {
               </div>
             ))}
           </div>
+          <div className="mt-2 grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <Label>Currency</Label>
+              <Input
+                value={invoiceCurrency}
+                placeholder={orgSettings?.currency ?? 'USD'}
+                onChange={(e) => setInvoiceCurrency(e.target.value.toUpperCase())}
+                maxLength={3}
+              />
+            </div>
+            <div className="space-y-1">
+              <Label>FX rate (to base currency)</Label>
+              <Input
+                type="number"
+                step="any"
+                min={0}
+                value={invoiceFxRate}
+                onChange={(e) => setInvoiceFxRate(e.target.value)}
+              />
+            </div>
+          </div>
           <DialogFooter>
             <Button
               disabled={
@@ -382,6 +406,8 @@ export default function SalesOrderDetailPage() {
                 createInvoice.mutate(
                   {
                     soId,
+                    currency: invoiceCurrency.trim() || undefined,
+                    fxRate: Number(invoiceFxRate) || 1,
                     lines: invoiceable
                       .filter((line) => Number(invoiceQty[line.id]) > 0)
                       .map((line) => ({ soLineId: line.id, qty: Number(invoiceQty[line.id]) })),

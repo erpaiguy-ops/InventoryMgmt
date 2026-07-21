@@ -31,6 +31,8 @@ import {
   CreateCostCenterDto,
   CreateJournalEntryDto,
   CreatePaymentMethodDto,
+  ImportBankFeedDto,
+  MatchBankTransactionDto,
   UpdateAccountDto,
   UpdateCostCenterDto,
 } from './dto/financials.dto';
@@ -94,9 +96,11 @@ interface BankTxnRow {
   txn_date: string;
   description: string | null;
   amount: number;
+  reference: string | null;
   source: BankTransaction['source'];
   source_doc_type: string | null;
   source_doc_id: string | null;
+  matched_txn_id: string | null;
   is_reconciled: boolean;
   reconciled_at: string | null;
   created_at: string;
@@ -107,6 +111,8 @@ interface ArReceiptRow {
   customer_id: string;
   receipt_date: string;
   amount: number;
+  currency: string;
+  fx_rate: number;
   payment_method_id: string | null;
   notes: string | null;
   created_at: string;
@@ -117,6 +123,8 @@ interface ApPaymentRow {
   supplier_id: string;
   payment_date: string;
   amount: number;
+  currency: string;
+  fx_rate: number;
   payment_method_id: string | null;
   notes: string | null;
   created_at: string;
@@ -185,9 +193,11 @@ const toBankTxn = (r: BankTxnRow): BankTransaction => ({
   txnDate: r.txn_date,
   description: r.description,
   amount: r.amount,
+  reference: r.reference,
   source: r.source,
   sourceDocType: r.source_doc_type,
   sourceDocId: r.source_doc_id,
+  matchedTxnId: r.matched_txn_id,
   isReconciled: r.is_reconciled,
   reconciledAt: r.reconciled_at,
   createdAt: r.created_at,
@@ -446,6 +456,7 @@ export class FinancialsService {
         txn_date: dto.txnDate,
         description: dto.description,
         amount: dto.amount,
+        reference: dto.reference,
         source: 'manual',
         created_by: createdBy,
       })
@@ -469,6 +480,40 @@ export class FinancialsService {
       throw new NotFoundException(error?.message ?? `Bank transaction ${id} not found`);
     }
     return toBankTxn(data);
+  }
+
+  /** Bulk-inserts a parsed CSV statement as unreconciled 'feed' rows. */
+  async importBankFeed(
+    tenantId: string,
+    dto: ImportBankFeedDto,
+    createdBy?: string,
+  ): Promise<{ imported: number }> {
+    if (dto.rows.length === 0) throw new BadRequestException('No rows to import');
+    const imported = await this.supabaseService.callTransaction<number>('import_bank_feed', {
+      p_tenant_id: tenantId,
+      p_bank_account_id: dto.bankAccountId,
+      p_rows: dto.rows.map((r) => ({
+        txn_date: r.txnDate,
+        description: r.description,
+        amount: r.amount,
+        reference: r.reference,
+      })),
+      p_created_by: createdBy,
+    });
+    return { imported };
+  }
+
+  /** Confirms an imported feed row is the same movement as an existing system entry — reconciles both sides. */
+  async matchBankTransaction(
+    tenantId: string,
+    feedTxnId: string,
+    dto: MatchBankTransactionDto,
+  ): Promise<void> {
+    await this.supabaseService.callTransaction('match_bank_transaction', {
+      p_tenant_id: tenantId,
+      p_feed_txn_id: feedTxnId,
+      p_target_txn_id: dto.targetId,
+    });
   }
 
   // --- AR receipts ----------------------------------------------------------------
@@ -498,6 +543,8 @@ export class FinancialsService {
         customerName: customers.get(row.customer_id),
         receiptDate: row.receipt_date,
         amount: row.amount,
+        currency: row.currency,
+        fxRate: Number(row.fx_rate),
         paymentMethodId: row.payment_method_id,
         notes: row.notes,
         createdAt: row.created_at,
@@ -519,6 +566,13 @@ export class FinancialsService {
     return new Map((data ?? []).map((p) => [p.id, p.name]));
   }
 
+  private async orgCurrency(tenantId: string): Promise<string> {
+    const { data } = (await this.supabaseService
+      .selectTenant(tenantId, 'org_settings', 'currency')
+      .maybeSingle()) as { data: { currency: string } | null };
+    return data?.currency ?? 'USD';
+  }
+
   /** Creates the receipt + allocations, then posts Dr Bank-or-Cash / Cr AR via the DB RPC — rolling back the receipt if posting fails (e.g. over-allocation). */
   async createArReceipt(
     tenantId: string,
@@ -535,6 +589,9 @@ export class FinancialsService {
       );
     }
 
+    const currency = dto.currency ?? (await this.orgCurrency(tenantId));
+    const fxRate = dto.fxRate ?? 1;
+
     const docNo = await this.supabaseService.callTransaction<string>('next_doc_number', {
       p_tenant_id: tenantId,
       p_doc_type: 'ar_receipt',
@@ -546,6 +603,8 @@ export class FinancialsService {
         customer_id: dto.customerId,
         receipt_date: dto.receiptDate,
         amount: dto.amount,
+        currency,
+        fx_rate: fxRate,
         payment_method_id: dto.paymentMethodId,
         notes: dto.notes,
         created_by: createdBy,
@@ -613,6 +672,8 @@ export class FinancialsService {
         supplierName: suppliers.get(row.supplier_id),
         paymentDate: row.payment_date,
         amount: row.amount,
+        currency: row.currency,
+        fxRate: Number(row.fx_rate),
         paymentMethodId: row.payment_method_id,
         notes: row.notes,
         createdAt: row.created_at,
@@ -641,6 +702,9 @@ export class FinancialsService {
       );
     }
 
+    const currency = dto.currency ?? (await this.orgCurrency(tenantId));
+    const fxRate = dto.fxRate ?? 1;
+
     const docNo = await this.supabaseService.callTransaction<string>('next_doc_number', {
       p_tenant_id: tenantId,
       p_doc_type: 'ap_payment',
@@ -652,6 +716,8 @@ export class FinancialsService {
         supplier_id: dto.supplierId,
         payment_date: dto.paymentDate,
         amount: dto.amount,
+        currency,
+        fx_rate: fxRate,
         payment_method_id: dto.paymentMethodId,
         notes: dto.notes,
         created_by: createdBy,

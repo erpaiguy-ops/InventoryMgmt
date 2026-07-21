@@ -6,6 +6,7 @@ import {
   IsOptional,
   IsString,
   IsUUID,
+  Length,
   MaxLength,
   Min,
   ValidateNested,
@@ -118,6 +119,18 @@ export class CreatePurchaseBillDto {
   @IsOptional()
   @IsDateString()
   dueDate?: string;
+
+  /** ISO 4217 code. Defaults to the org's base currency when omitted. */
+  @IsOptional()
+  @IsString()
+  @Length(3, 3)
+  currency?: string;
+
+  /** Units of the org's base currency per 1 unit of `currency`. Defaults to 1. */
+  @IsOptional()
+  @IsNumber()
+  @Min(0.000001)
+  fxRate?: number;
 
   @IsOptional()
   @IsString()

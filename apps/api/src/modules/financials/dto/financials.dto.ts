@@ -8,6 +8,7 @@ import {
   IsOptional,
   IsString,
   IsUUID,
+  Length,
   MaxLength,
   Min,
   ValidateNested,
@@ -158,6 +159,43 @@ export class CreateBankTransactionDto {
 
   @IsNumber()
   amount!: number;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  reference?: string;
+}
+
+export class ImportBankFeedRowDto {
+  @IsDateString()
+  txnDate!: string;
+
+  @IsString()
+  @MaxLength(500)
+  description!: string;
+
+  @IsNumber()
+  amount!: number;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  reference?: string;
+}
+
+export class ImportBankFeedDto {
+  @IsUUID()
+  bankAccountId!: string;
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ImportBankFeedRowDto)
+  rows!: ImportBankFeedRowDto[];
+}
+
+export class MatchBankTransactionDto {
+  @IsUUID()
+  targetId!: string;
 }
 
 export class ArAllocationDto {
@@ -180,6 +218,18 @@ export class CreateArReceiptDto {
   @IsNumber()
   @Min(0.01)
   amount!: number;
+
+  /** ISO 4217 code. Defaults to the org's base currency when omitted; every allocated invoice must share it. */
+  @IsOptional()
+  @IsString()
+  @Length(3, 3)
+  currency?: string;
+
+  /** Units of the org's base currency per 1 unit of `currency`. Defaults to 1. */
+  @IsOptional()
+  @IsNumber()
+  @Min(0.000001)
+  fxRate?: number;
 
   @IsUUID()
   paymentMethodId!: string;
@@ -218,6 +268,18 @@ export class CreateApPaymentDto {
   @IsNumber()
   @Min(0.01)
   amount!: number;
+
+  /** ISO 4217 code. Defaults to the org's base currency when omitted; every allocated bill must share it. */
+  @IsOptional()
+  @IsString()
+  @Length(3, 3)
+  currency?: string;
+
+  /** Units of the org's base currency per 1 unit of `currency`. Defaults to 1. */
+  @IsOptional()
+  @IsNumber()
+  @Min(0.000001)
+  fxRate?: number;
 
   @IsUUID()
   paymentMethodId!: string;

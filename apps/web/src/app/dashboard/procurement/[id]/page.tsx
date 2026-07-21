@@ -42,6 +42,7 @@ import {
   useReceiveGoods,
   useSubmitPo,
 } from '@/hooks/use-procurement';
+import { useOrgSettings } from '@/hooks/use-settings';
 
 const STATUS_VARIANT: Record<
   PurchaseOrderDoc['status'],
@@ -61,6 +62,7 @@ export default function PurchaseOrderDetailPage() {
 
   const { data: po, isLoading } = usePurchaseOrder(poId);
   const { data: grns } = useGoodsReceipts(poId);
+  const { data: orgSettings } = useOrgSettings();
   const submitPo = useSubmitPo();
   const cancelPo = useCancelPo();
   const receiveGoods = useReceiveGoods();
@@ -77,6 +79,8 @@ export default function PurchaseOrderDetailPage() {
   const [billOpen, setBillOpen] = useState(false);
   const [billQty, setBillQty] = useState<Record<string, string>>({});
   const [supplierBillNo, setSupplierBillNo] = useState('');
+  const [billCurrency, setBillCurrency] = useState('');
+  const [billFxRate, setBillFxRate] = useState('1');
   const [lcOpen, setLcOpen] = useState(false);
   const [lcGrId, setLcGrId] = useState('');
   const [lcDescription, setLcDescription] = useState('');
@@ -372,6 +376,27 @@ export default function PurchaseOrderDetailPage() {
                 </div>
               ))}
             </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label>Currency</Label>
+                <Input
+                  value={billCurrency}
+                  placeholder={orgSettings?.currency ?? 'USD'}
+                  onChange={(e) => setBillCurrency(e.target.value.toUpperCase())}
+                  maxLength={3}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label>FX rate (to base currency)</Label>
+                <Input
+                  type="number"
+                  step="any"
+                  min={0}
+                  value={billFxRate}
+                  onChange={(e) => setBillFxRate(e.target.value)}
+                />
+              </div>
+            </div>
           </div>
           <DialogFooter>
             <Button
@@ -383,6 +408,8 @@ export default function PurchaseOrderDetailPage() {
                   {
                     poId,
                     supplierBillNo: supplierBillNo || undefined,
+                    currency: billCurrency.trim() || undefined,
+                    fxRate: Number(billFxRate) || 1,
                     lines: billable
                       .filter((line) => Number(billQty[line.id]) > 0)
                       .map((line) => ({ poLineId: line.id, qty: Number(billQty[line.id]) })),

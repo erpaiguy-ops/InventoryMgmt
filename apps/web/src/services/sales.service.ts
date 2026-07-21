@@ -26,6 +26,8 @@ export interface InvoicePayload {
   soId: string;
   invoiceDate?: string;
   dueDate?: string;
+  currency?: string;
+  fxRate?: number;
   notes?: string;
   lines: { soLineId: string; qty: number; unitPrice?: number }[];
 }

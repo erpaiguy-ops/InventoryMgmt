@@ -12,6 +12,7 @@ import {
   type CreateCostCenterPayload,
   type CreateJournalEntryPayload,
   type CreatePaymentMethodPayload,
+  type ImportBankFeedPayload,
   type UpdateAccountPayload,
 } from '@/services/financials.service';
 
@@ -122,6 +123,23 @@ export function useReconcileBankTransaction() {
   const invalidate = useInvalidateFinancials();
   return useMutation({
     mutationFn: (id: string) => financialsService.reconcileBankTransaction(id),
+    onSuccess: invalidate,
+  });
+}
+
+export function useImportBankFeed() {
+  const invalidate = useInvalidateFinancials();
+  return useMutation({
+    mutationFn: (p: ImportBankFeedPayload) => financialsService.importBankFeed(p),
+    onSuccess: invalidate,
+  });
+}
+
+export function useMatchBankTransaction() {
+  const invalidate = useInvalidateFinancials();
+  return useMutation({
+    mutationFn: ({ feedTxnId, targetId }: { feedTxnId: string; targetId: string }) =>
+      financialsService.matchBankTransaction(feedTxnId, targetId),
     onSuccess: invalidate,
   });
 }

@@ -4,11 +4,12 @@ import {
   ACTIONS,
   hasPermission,
   MODULES,
+  type BankFeedRow,
   type BankTransaction,
 } from '@inventory-mgmt/shared-types';
-import { ArrowLeft, CheckCircle2, Plus } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Link2, Plus, Upload } from 'lucide-react';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 import { DataTable, type DataTableColumn } from '@/components/common/data-table';
@@ -37,9 +38,12 @@ import {
   useBankTransactions,
   useCreateBankAccount,
   useCreateBankTransaction,
+  useImportBankFeed,
+  useMatchBankTransaction,
   useReconcileBankTransaction,
 } from '@/hooks/use-financials';
 import { usePrincipal } from '@/hooks/use-principal';
+import { parseCsv } from '@/lib/csv';
 
 export default function BankingPage() {
   const { data: bankAccounts } = useBankAccounts();
@@ -50,6 +54,8 @@ export default function BankingPage() {
   const { data: transactions, isLoading } = useBankTransactions(selectedBankAccountId || undefined);
   const createTransaction = useCreateBankTransaction();
   const reconcile = useReconcileBankTransaction();
+  const importFeed = useImportBankFeed();
+  const matchTxn = useMatchBankTransaction();
 
   const { principal } = usePrincipal();
   const permissions = principal?.type === 'tenant' ? principal.permissions : undefined;
@@ -66,6 +72,56 @@ export default function BankingPage() {
   const [txnDate, setTxnDate] = useState('');
   const [txnDescription, setTxnDescription] = useState('');
   const [txnAmount, setTxnAmount] = useState('');
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [matchTarget, setMatchTarget] = useState<BankTransaction | null>(null);
+  const [matchWithId, setMatchWithId] = useState('');
+
+  const handleImportFile = async (file: File) => {
+    if (!selectedBankAccountId) {
+      toast.error('Pick a single bank account first (the filter above) to import into');
+      return;
+    }
+    const text = await file.text();
+    const rows = parseCsv(text);
+    if (rows.length === 0) {
+      toast.error('No data rows found in the file');
+      return;
+    }
+    const parsed: BankFeedRow[] = [];
+    for (const r of rows) {
+      const txnDate = r.txn_date;
+      const description = r.description;
+      if (!txnDate || !description || !r.amount) continue;
+      parsed.push({
+        txnDate,
+        description,
+        amount: Number(r.amount),
+        reference: r.reference || undefined,
+      });
+    }
+    if (parsed.length === 0) {
+      toast.error('No valid rows (txn_date, description, amount are required)');
+      return;
+    }
+    importFeed.mutate(
+      { bankAccountId: selectedBankAccountId, rows: parsed },
+      {
+        onSuccess: (result) => toast.success(`Imported ${result.imported} statement line(s)`),
+        onError: (e) => toast.error(e instanceof Error ? e.message : 'Import failed'),
+      },
+    );
+  };
+
+  const candidateMatches = (transactions ?? []).filter(
+    (t) =>
+      matchTarget &&
+      t.id !== matchTarget.id &&
+      t.source !== 'feed' &&
+      !t.isReconciled &&
+      t.bankAccountId === matchTarget.bankAccountId &&
+      t.amount === matchTarget.amount,
+  );
 
   const columns: DataTableColumn<BankTransaction>[] = [
     { key: 'date', header: 'Date', render: (t) => t.txnDate },
@@ -93,8 +149,23 @@ export default function BankingPage() {
     {
       key: 'actions',
       header: '',
-      render: (t) =>
-        canUpdate && !t.isReconciled ? (
+      render: (t) => {
+        if (!canUpdate || t.isReconciled) return null;
+        if (t.source === 'feed') {
+          return (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                setMatchTarget(t);
+                setMatchWithId('');
+              }}
+            >
+              <Link2 className="mr-1 h-3 w-3" /> Match
+            </Button>
+          );
+        }
+        return (
           <Button
             size="sm"
             variant="outline"
@@ -107,7 +178,8 @@ export default function BankingPage() {
           >
             <CheckCircle2 className="mr-1 h-3 w-3" /> Reconcile
           </Button>
-        ) : null,
+        );
+      },
     },
   ];
 
@@ -123,6 +195,29 @@ export default function BankingPage() {
           <h1 className="text-2xl font-semibold">Banking</h1>
         </div>
         <div className="flex gap-2">
+          {canCreate && (
+            <>
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={importFeed.isPending}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <Upload className="mr-2 h-4 w-4" /> Import CSV
+              </Button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".csv,text/csv"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) void handleImportFile(file);
+                  e.target.value = '';
+                }}
+              />
+            </>
+          )}
           {canCreate && (
             <Dialog open={bankOpen} onOpenChange={setBankOpen}>
               <DialogTrigger asChild>
@@ -301,6 +396,12 @@ export default function BankingPage() {
           </SelectContent>
         </Select>
       </div>
+      <p className="text-muted-foreground text-xs">
+        CSV import needs a single bank account selected above, with columns txn_date, description,
+        amount, reference (optional). Imported lines land as unreconciled &quot;feed&quot; rows —
+        match each one against an existing entry with the same amount, or reconcile it directly if
+        there&apos;s nothing to match.
+      </p>
 
       <DataTable
         columns={columns}
@@ -308,6 +409,61 @@ export default function BankingPage() {
         loading={isLoading}
         emptyMessage="No bank transactions yet"
       />
+
+      <Dialog open={matchTarget !== null} onOpenChange={(next) => !next && setMatchTarget(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Match &quot;{matchTarget?.description}&quot;</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <p className="text-muted-foreground text-sm">
+              Amount {matchTarget?.amount.toFixed(2)} on {matchTarget?.txnDate}
+            </p>
+            {candidateMatches.length === 0 ? (
+              <p className="text-muted-foreground text-sm">
+                No unreconciled entry with the same amount on this account. Reconcile it directly
+                instead if there&apos;s nothing to match.
+              </p>
+            ) : (
+              <div className="space-y-1">
+                <Label>Match with</Label>
+                <Select value={matchWithId} onValueChange={setMatchWithId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Existing entry" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {candidateMatches.map((t) => (
+                      <SelectItem key={t.id} value={t.id}>
+                        {t.txnDate} — {t.description ?? t.source} ({t.amount.toFixed(2)})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button
+              disabled={!matchWithId || matchTxn.isPending}
+              onClick={() =>
+                matchTarget &&
+                matchTxn.mutate(
+                  { feedTxnId: matchTarget.id, targetId: matchWithId },
+                  {
+                    onSuccess: () => {
+                      toast.success('Matched and reconciled');
+                      setMatchTarget(null);
+                    },
+                    onError: (e) => toast.error(e instanceof Error ? e.message : 'Failed'),
+                  },
+                )
+              }
+            >
+              Confirm match
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

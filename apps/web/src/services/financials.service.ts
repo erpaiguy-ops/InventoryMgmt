@@ -4,6 +4,7 @@ import type {
   ApPayment,
   ArReceipt,
   BankAccount,
+  BankFeedRow,
   BankTransaction,
   CostCenter,
   FiscalPeriod,
@@ -66,12 +67,20 @@ export interface CreateBankTransactionPayload {
   txnDate?: string;
   description?: string;
   amount: number;
+  reference?: string;
+}
+
+export interface ImportBankFeedPayload {
+  bankAccountId: string;
+  rows: BankFeedRow[];
 }
 
 export interface CreateArReceiptPayload {
   customerId: string;
   receiptDate?: string;
   amount: number;
+  currency?: string;
+  fxRate?: number;
   paymentMethodId: string;
   depositAccountId: string;
   notes?: string;
@@ -82,6 +91,8 @@ export interface CreateApPaymentPayload {
   supplierId: string;
   paymentDate?: string;
   amount: number;
+  currency?: string;
+  fxRate?: number;
   paymentMethodId: string;
   sourceAccountId: string;
   notes?: string;
@@ -118,6 +129,10 @@ export const financialsService = {
     apiClient.post<BankTransaction>('/financials/bank-transactions', p),
   reconcileBankTransaction: (id: string) =>
     apiClient.post<BankTransaction>(`/financials/bank-transactions/${id}/reconcile`),
+  importBankFeed: (p: ImportBankFeedPayload) =>
+    apiClient.post<{ imported: number }>('/financials/bank-transactions/import', p),
+  matchBankTransaction: (feedTxnId: string, targetId: string) =>
+    apiClient.post<void>(`/financials/bank-transactions/${feedTxnId}/match`, { targetId }),
 
   listArReceipts: () => apiClient.get<ArReceipt[]>('/financials/ar-receipts'),
   createArReceipt: (p: CreateArReceiptPayload) =>

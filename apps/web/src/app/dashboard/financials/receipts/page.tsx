@@ -34,6 +34,7 @@ import {
 import { usePartners } from '@/hooks/use-partners';
 import { usePrincipal } from '@/hooks/use-principal';
 import { useSalesInvoices } from '@/hooks/use-sales';
+import { useOrgSettings } from '@/hooks/use-settings';
 
 export default function ArReceiptsPage() {
   const { data: receipts, isLoading } = useArReceipts();
@@ -41,6 +42,7 @@ export default function ArReceiptsPage() {
   const { data: invoices } = useSalesInvoices();
   const { data: paymentMethods } = usePaymentMethods();
   const { data: accounts } = useAccounts();
+  const { data: orgSettings } = useOrgSettings();
   const createReceipt = useCreateArReceipt();
 
   const { principal } = usePrincipal();
@@ -52,12 +54,21 @@ export default function ArReceiptsPage() {
   const [paymentMethodId, setPaymentMethodId] = useState('');
   const [depositAccountId, setDepositAccountId] = useState('');
   const [amount, setAmount] = useState('');
+  const [currency, setCurrency] = useState('');
+  const [fxRate, setFxRate] = useState('1');
   const [allocations, setAllocations] = useState<Record<string, string>>({});
 
   const customers = customersPage?.data ?? [];
+  const effectiveCurrency = currency.trim() || orgSettings?.currency || 'USD';
   const openInvoices = useMemo(
-    () => (invoices ?? []).filter((inv) => inv.status === 'open' && inv.customerId === customerId),
-    [invoices, customerId],
+    () =>
+      (invoices ?? []).filter(
+        (inv) =>
+          inv.status === 'open' &&
+          inv.customerId === customerId &&
+          inv.currency === effectiveCurrency,
+      ),
+    [invoices, customerId, effectiveCurrency],
   );
 
   const columns: DataTableColumn<ArReceipt>[] = [
@@ -86,6 +97,8 @@ export default function ArReceiptsPage() {
     setPaymentMethodId('');
     setDepositAccountId('');
     setAmount('');
+    setCurrency('');
+    setFxRate('1');
     setAllocations({});
   };
 
@@ -185,6 +198,27 @@ export default function ArReceiptsPage() {
                     </Select>
                   </div>
                 </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label>Currency</Label>
+                    <Input
+                      value={currency}
+                      placeholder={orgSettings?.currency ?? 'USD'}
+                      onChange={(e) => setCurrency(e.target.value.toUpperCase())}
+                      maxLength={3}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label>FX rate (to base currency)</Label>
+                    <Input
+                      type="number"
+                      step="any"
+                      min={0}
+                      value={fxRate}
+                      onChange={(e) => setFxRate(e.target.value)}
+                    />
+                  </div>
+                </div>
                 {customerId && (
                   <div className="space-y-2">
                     <Label>Allocate against open invoices</Label>
@@ -232,6 +266,8 @@ export default function ArReceiptsPage() {
                       {
                         customerId,
                         amount: Number(amount),
+                        currency: currency.trim() || undefined,
+                        fxRate: Number(fxRate) || 1,
                         paymentMethodId,
                         depositAccountId,
                         allocations: Object.entries(allocations)

@@ -77,6 +77,8 @@ interface InvoiceRow {
   tax_total: number;
   total: number;
   amount_paid: number;
+  currency: string;
+  fx_rate: number;
   notes: string | null;
   created_at: string;
 }
@@ -166,6 +168,13 @@ export class SalesService implements OnModuleInit {
       .selectTenant(tenantId, 'partners', 'id, name')
       .in('id', [...new Set(ids)])) as unknown as { data: { id: string; name: string }[] | null };
     return new Map((data ?? []).map((p) => [p.id, p.name]));
+  }
+
+  private async orgCurrency(tenantId: string): Promise<string> {
+    const { data } = (await this.supabaseService
+      .selectTenant(tenantId, 'org_settings', 'currency')
+      .maybeSingle()) as { data: { currency: string } | null };
+    return data?.currency ?? 'USD';
   }
 
   // --- sales orders -----------------------------------------------------------
@@ -507,6 +516,8 @@ export class SalesService implements OnModuleInit {
       taxTotal: row.tax_total,
       total: row.total,
       amountPaid: row.amount_paid,
+      currency: row.currency,
+      fxRate: Number(row.fx_rate),
       notes: row.notes,
       createdAt: row.created_at,
       lines: (lines ?? []).map((line) => ({
@@ -541,6 +552,9 @@ export class SalesService implements OnModuleInit {
     )) as unknown as { data: { id: string; rate: number }[] | null };
     const taxRate = new Map((taxes ?? []).map((t) => [t.id, Number(t.rate)]));
 
+    const currency = dto.currency ?? (await this.orgCurrency(tenantId));
+    const fxRate = dto.fxRate ?? 1;
+
     let subtotal = 0;
     let taxTotal = 0;
     for (const line of dto.lines) {
@@ -572,6 +586,8 @@ export class SalesService implements OnModuleInit {
         subtotal,
         tax_total: taxTotal,
         total: subtotal + taxTotal,
+        currency,
+        fx_rate: fxRate,
         notes: dto.notes,
         created_by: createdBy,
       })
@@ -600,14 +616,16 @@ export class SalesService implements OnModuleInit {
       throw new BadRequestException(lineError.message);
     }
 
+    // GL posts in the tenant's base currency; the invoice itself stays in its
+    // own currency throughout (this multiplication is a no-op at fxRate 1).
     const invoiceJournalLines: Record<string, unknown>[] = [
-      { account_role: 'ar', debit: subtotal + taxTotal, partner_id: so.customerId },
-      { account_role: 'revenue', credit: subtotal, partner_id: so.customerId },
+      { account_role: 'ar', debit: (subtotal + taxTotal) * fxRate, partner_id: so.customerId },
+      { account_role: 'revenue', credit: subtotal * fxRate, partner_id: so.customerId },
     ];
     if (taxTotal > 0) {
       invoiceJournalLines.push({
         account_role: 'tax_payable',
-        credit: taxTotal,
+        credit: taxTotal * fxRate,
         partner_id: so.customerId,
       });
     }
