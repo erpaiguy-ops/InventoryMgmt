@@ -11,6 +11,7 @@ import {
   Contact,
   LayoutDashboard,
   Package,
+  Receipt,
   Settings,
   ShoppingBag,
   ShoppingCart,
@@ -84,6 +85,12 @@ export const navItems: NavItem[] = [
     label: 'Fleet',
     icon: Truck,
     permission: { module: MODULES.FLEET, action: ACTIONS.VIEW },
+  },
+  {
+    href: '/dashboard/pos',
+    label: 'POS',
+    icon: Receipt,
+    permission: { module: MODULES.POS, action: ACTIONS.VIEW },
   },
   {
     href: '/dashboard/approvals',

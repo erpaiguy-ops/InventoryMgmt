@@ -10,5 +10,6 @@ export * from './sales';
 export * from './financials';
 export * from './fixed-assets';
 export * from './hrm';
+export * from './pos';
 export * from './fleet';
 export * from './reports';

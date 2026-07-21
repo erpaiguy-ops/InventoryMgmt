@@ -2580,6 +2580,95 @@ export interface Database {
         Update: Partial<Database['v2']['Tables']['audit_log']['Insert']>;
         Relationships: [];
       };
+      cash_drawer_sessions: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          opening_float: number;
+          status: 'open' | 'closed';
+          closing_counted: number | null;
+          closing_expected: number | null;
+          over_short: number | null;
+          opened_by: string | null;
+          opened_at: string;
+          closed_by: string | null;
+          closed_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          opening_float?: number;
+          status?: 'open' | 'closed';
+          closing_counted?: number | null;
+          closing_expected?: number | null;
+          over_short?: number | null;
+          opened_by?: string | null;
+          opened_at?: string;
+          closed_by?: string | null;
+          closed_at?: string | null;
+        };
+        Update: Partial<Database['v2']['Tables']['cash_drawer_sessions']['Insert']>;
+        Relationships: [];
+      };
+      pos_sales: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          doc_no: string;
+          session_id: string;
+          customer_id: string | null;
+          warehouse_id: string;
+          payment_method_id: string;
+          subtotal: number;
+          tax_total: number;
+          total: number;
+          status: 'draft' | 'posted';
+          posted_at: string | null;
+          created_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          doc_no: string;
+          session_id: string;
+          customer_id?: string | null;
+          warehouse_id: string;
+          payment_method_id: string;
+          subtotal?: number;
+          tax_total?: number;
+          total?: number;
+          status?: 'draft' | 'posted';
+          posted_at?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database['v2']['Tables']['pos_sales']['Insert']>;
+        Relationships: [];
+      };
+      pos_sale_lines: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          sale_id: string;
+          item_id: string;
+          qty: number;
+          unit_price: number;
+          tax_id: string | null;
+          line_total: number;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          sale_id: string;
+          item_id: string;
+          qty: number;
+          unit_price: number;
+          tax_id?: string | null;
+        };
+        Update: Partial<Database['v2']['Tables']['pos_sale_lines']['Insert']>;
+        Relationships: [];
+      };
     };
     Views: {
       profile_with_permissions: {

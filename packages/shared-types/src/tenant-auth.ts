@@ -15,6 +15,7 @@ export const MODULES = {
   FIXED_ASSETS: 'fixed_assets',
   HRM: 'hrm',
   FLEET: 'fleet',
+  POS: 'pos',
   APPROVALS: 'approvals',
   SETTINGS: 'settings',
   USERS: 'users',

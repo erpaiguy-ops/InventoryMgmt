@@ -21,6 +21,7 @@ import { InventoryModule } from './modules/inventory/inventory.module';
 import { ItemsModule } from './modules/items/items.module';
 import { OwnerModule } from './modules/owner/owner.module';
 import { PartnersModule } from './modules/partners/partners.module';
+import { PosModule } from './modules/pos/pos.module';
 import { ProcurementModule } from './modules/procurement/procurement.module';
 import { ReportsModule } from './modules/reports/reports.module';
 import { SalesModule } from './modules/sales/sales.module';
@@ -52,6 +53,7 @@ import { UsersModule } from './modules/users/users.module';
     FixedAssetsModule,
     HrmModule,
     FleetModule,
+    PosModule,
     ReportsModule,
   ],
   providers: [
